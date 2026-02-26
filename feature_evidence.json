@@ -1,0 +1,147 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-apply-glassmorphism-styling-across-all-card-components-modals-and-sidebar-panels-use-semi-transparent-backgrounds-e-g-rgba-white-black-with-10-15-opacity-backdrop-blur-and-subtle-border-highlights-to-create-a-premium-frosted-glass-look-consistent-with-the-existing-deep-navy-dark-theme",
+      "featureTitle": "Apply glassmorphism styling across all card components, modals, and sidebar panels: use semi-transparent backgrounds (e.g., rgba white/black with 10–15% opacity), backdrop-blur, and subtle border highlights to create a premium frosted-glass look consistent with the existing deep navy dark theme.",
+      "files": [
+        "frontend/src/components/Layout.tsx",
+        "frontend/src/index.css",
+        "frontend/src/pages/AnalyticsPage.tsx",
+        "frontend/src/pages/DashboardPage.tsx",
+        "frontend/src/pages/NewTradePage.tsx",
+        "frontend/src/pages/RiskManagementPage.tsx",
+        "frontend/src/pages/TradeLogPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-restyle-the-buy-and-sell-direction-buttons-badges-throughout-the-app-new-trade-form-trade-log-table-etc-to-use-soft-neon-borders-instead-of-solid-fills-green-neon-border-for-buy-and-red-neon-border-for-sell-with-a-glowing-box-shadow-effect-that-activates-on-hover-and-click",
+      "featureTitle": "Restyle the Buy and Sell direction buttons/badges throughout the app (New Trade form, Trade Log table, etc.) to use soft neon borders instead of solid fills — green neon border for Buy and red neon border for Sell — with a glowing box-shadow effect that activates on hover and click.",
+      "files": [
+        "frontend/src/index.css",
+        "frontend/src/pages/NewTradePage.tsx",
+        "frontend/src/pages/TradeLogPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-increase-the-size-of-sidebar-navigation-icons-and-switch-to-a-minimalistic-icon-set-each-navigation-item-dashboard-new-trade-trade-history-trade-log-analytics-risk-management-settings-must-display-a-larger-clean-icon-alongside-the-label-text",
+      "featureTitle": "Increase the size of sidebar navigation icons and switch to a minimalistic icon set. Each navigation item (Dashboard, New Trade, Trade History/Trade Log, Analytics, Risk Management, Settings) must display a larger, clean icon alongside the label text.",
+      "files": [
+        "frontend/src/components/Layout.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-an-interactive-p-l-line-chart-at-the-top-of-the-dashboard-page-showing-the-net-profit-loss-for-the-last-7-calendar-days-the-chart-should-use-trade-data-from-the-existing-store-show-day-labels-on-the-x-axis-and-p-l-values-on-the-y-axis-and-visually-distinguish-positive-vs-negative-days-green-vs-red-line-fill",
+      "featureTitle": "Add an interactive P&L line chart at the top of the Dashboard page showing the net profit/loss for the last 7 calendar days. The chart should use trade data from the existing store, show day labels on the X-axis and P&L values on the Y-axis, and visually distinguish positive vs negative days (green vs red line/fill).",
+      "files": [
+        "frontend/src/pages/DashboardPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-live-risk-reward-calculator-section-in-the-new-trade-form-newtradepage-as-the-user-types-entry-price-and-stop-loss-values-automatically-calculate-and-display-risk-per-share-entry-stop-loss-risk-amount-risk-per-share-quantity-and-risk-reward-ratio-using-the-target-price-all-calculations-must-update-in-real-time-without-any-button-press",
+      "featureTitle": "Add a Live Risk-Reward Calculator section in the New Trade form (NewTradePage). As the user types Entry Price and Stop Loss values, automatically calculate and display: Risk per Share (|Entry - Stop Loss|), Risk Amount (Risk per Share × Quantity), and Risk:Reward Ratio using the Target price. All calculations must update in real-time without any button press.",
+      "files": [
+        "frontend/src/pages/NewTradePage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-trade-conviction-meter-to-the-new-trade-form-a-1-to-5-star-rating-slider-selector-that-lets-the-trader-record-their-confidence-level-conviction-before-entering-a-trade-this-conviction-value-must-be-saved-as-part-of-the-trade-record-and-displayed-in-the-trade-log-table",
+      "featureTitle": "Add a Trade Conviction Meter to the New Trade form — a 1-to-5 star rating slider/selector that lets the trader record their confidence level ('conviction') before entering a trade. This conviction value must be saved as part of the trade record and displayed in the Trade Log table.",
+      "files": [
+        "frontend/src/pages/NewTradePage.tsx",
+        "frontend/src/pages/TradeLogPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-search-and-filter-controls-to-the-trade-log-page-tradelogpage-allowing-users-to-filter-past-trades-by-strategy-setup-strategy-tag-and-by-mistake-type-e-g-fomo-early-entry-etc-the-filters-should-work-alongside-the-existing-filters-and-update-the-trade-table-in-real-time",
+      "featureTitle": "Add search and filter controls to the Trade Log page (TradeLogPage) allowing users to filter past trades by Strategy (setup/strategy tag) and by Mistake Type (e.g., FOMO, Early Entry, etc.). The filters should work alongside the existing filters and update the trade table in real-time.",
+      "files": [
+        "frontend/src/pages/TradeLogPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

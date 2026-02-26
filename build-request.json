@@ -1,0 +1,159 @@
+{
+  "kind": "build_request",
+  "title": "Glassmorphism UI Upgrade + P&L Chart, Risk Calculator, Conviction Meter & Trade Filters",
+  "projectName": "Trading Journal Pro",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Apply glassmorphism styling across all card components, modals, and sidebar panels: use semi-transparent backgrounds (e.g., rgba white/black with 10–15% opacity), backdrop-blur, and subtle border highlights to create a premium frosted-glass look consistent with the existing deep navy dark theme.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Glassmorphism Effect: Background ko halka sa blur aur transparent rakhein (jaise Apple ka interface hota hai). Isse dark mode aur bhi premium lagega."
+        ]
+      },
+      "acceptanceCriteria": [
+        "All stat cards, form containers, and modal panels use backdrop-blur with a semi-transparent background.",
+        "The effect is consistent across Dashboard, New Trade, Trade Log, Analytics, and Risk Management pages.",
+        "The dark navy theme is preserved and the glassmorphism effect enhances rather than obscures content."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Restyle the Buy and Sell direction buttons/badges throughout the app (New Trade form, Trade Log table, etc.) to use soft neon borders instead of solid fills — green neon border for Buy and red neon border for Sell — with a glowing box-shadow effect that activates on hover and click.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Color-Coded Status: 'Buy' aur 'Sell' buttons ko solid colors ki jagah soft neon borders (Green for Buy, Red for Sell) dein jo click karne par glow karein."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Buy buttons/badges have a soft green neon border with no solid fill background.",
+        "Sell buttons/badges have a soft red neon border with no solid fill background.",
+        "On hover and click, a glowing box-shadow animation activates for the respective color.",
+        "The styling is applied consistently across all pages where Buy/Sell direction is shown."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Increase the size of sidebar navigation icons and switch to a minimalistic icon set. Each navigation item (Dashboard, New Trade, Trade History/Trade Log, Analytics, Risk Management, Settings) must display a larger, clean icon alongside the label text.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Sidebar Icons: Jo text aapne likha hai (Dashboard, Trade Log), unke saath matching icons ko thoda bada aur minimalistic rakhein."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each sidebar nav item shows a recognizable minimalistic icon (e.g., from lucide-react) alongside its text label.",
+        "Icons are visually larger than default (at least 22–24px).",
+        "Icons and labels are vertically aligned and do not overflow the sidebar."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add an interactive P&L line chart at the top of the Dashboard page showing the net profit/loss for the last 7 calendar days. The chart should use trade data from the existing store, show day labels on the X-axis and P&L values on the Y-axis, and visually distinguish positive vs negative days (green vs red line/fill).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Interactive P&L Chart: Screen ke upar ek chota sa line graph jo aapke pichle 7 dino ka profit/loss dikhaye."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A line/area chart appears at the top of DashboardPage above the stat cards.",
+        "The chart displays the last 7 days with correct P&L aggregated from logged trades.",
+        "Days with net profit are rendered in green and days with net loss in red, or the line uses green/red fill zones.",
+        "The chart is responsive and fits within the existing layout without overflow."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Add a Live Risk-Reward Calculator section in the New Trade form (NewTradePage). As the user types Entry Price and Stop Loss values, automatically calculate and display: Risk per Share (|Entry - Stop Loss|), Risk Amount (Risk per Share × Quantity), and Risk:Reward Ratio using the Target price. All calculations must update in real-time without any button press.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Risk-Reward Calculator (Live): Jaise hi aap Entry Price aur Stop Loss daalein, system apne aap bata de ki aapka Risk per Share kitna hai."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Risk per Share is displayed and updates live as Entry Price or Stop Loss fields change.",
+        "Risk Amount (risk × quantity) updates live when Quantity, Entry, or Stop Loss fields change.",
+        "Risk:Reward Ratio updates live when Entry, Stop Loss, or Target changes.",
+        "The calculator outputs are shown in a clearly labeled summary block within the New Trade form.",
+        "All existing trade form fields and submit behavior remain unchanged."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Add a Trade Conviction Meter to the New Trade form — a 1-to-5 star rating slider/selector that lets the trader record their confidence level ('conviction') before entering a trade. This conviction value must be saved as part of the trade record and displayed in the Trade Log table.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Trade Conviction Meter: Ek slider (1-5 stars) jisme aap trade lene se pehle apni 'feeling' record kar sakein."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A 1–5 star selector appears in the New Trade form under the Psychology section.",
+        "The selected conviction value is saved to the trade record in the backend.",
+        "The Trade Log table displays the conviction rating (as stars or numeric) for each trade.",
+        "Conviction field is optional and defaults to 0 or unset if not selected.",
+        "The backend trade data type includes a conviction field (Nat or similar)."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Add search and filter controls to the Trade Log page (TradeLogPage) allowing users to filter past trades by Strategy (setup/strategy tag) and by Mistake Type (e.g., FOMO, Early Entry, etc.). The filters should work alongside the existing filters and update the trade table in real-time.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Journal Search/Filters: Ek filter jisme aap purane trades ko 'Strategy' ya 'Mistake Type' ke basis par search kar sakein."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A Strategy dropdown/filter control appears in the Trade Log filter bar, listing all unique strategy/setup values from logged trades plus an 'All' option.",
+        "A Mistake Type dropdown/multi-select appears in the Trade Log filter bar, listing all mistake types (FOMO, Early Entry, etc.) plus an 'All' option.",
+        "Selecting a Strategy or Mistake Type filter updates the displayed trade list in real time.",
+        "These filters compose correctly with existing search, direction, and type filters.",
+        "Clearing a filter restores the full trade list."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not break or modify the existing trade CRUD operations, P&L calculations, or analytics charts.",
+    "All new UI components must use the existing deep navy dark theme and Tailwind CSS conventions.",
+    "Immutable frontend paths (hooks, main.tsx, ui components) must not be modified.",
+    "The backend trade data type may only be extended additionally (add conviction field); no existing fields should be removed."
+  ],
+  "nonGoals": [
+    "Authentication or Internet Identity integration (no login/signup).",
+    "Multi-user or per-user data isolation changes.",
+    "Redesigning the analytics page charts.",
+    "Adding new pages beyond what is described.",
+    "Mobile-only layout changes unrelated to the requested features."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

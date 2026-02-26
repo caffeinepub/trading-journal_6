@@ -1,0 +1,177 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Glassmorphism UI Upgrade + P&L Chart, Risk Calculator, Conviction Meter & Trade Filters",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Apply glassmorphism styling across all card components, modals, and sidebar panels with semi-transparent backgrounds, backdrop-blur, and subtle border highlights",
+      "acceptanceCriteria": [
+        "All stat cards, form containers, and modal panels use backdrop-blur with a semi-transparent background.",
+        "The effect is consistent across Dashboard, New Trade, Trade Log, Analytics, and Risk Management pages.",
+        "The dark navy theme is preserved and the glassmorphism effect enhances rather than obscures content."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add glassmorphism utility classes for semi-transparent backgrounds with backdrop-blur effects. Define reusable classes like .glass-card with rgba backgrounds (10-15% opacity), backdrop-filter blur, and subtle border highlights that work with the existing dark navy theme."
+        },
+        {
+          "path": "frontend/src/pages/DashboardPage.tsx",
+          "operation": "modify",
+          "description": "Apply glassmorphism classes to all stat cards and the monthly stats section. Replace solid backgrounds with glass-card classes that use semi-transparent backgrounds and backdrop-blur."
+        },
+        {
+          "path": "frontend/src/pages/NewTradePage.tsx",
+          "operation": "modify",
+          "description": "Apply glassmorphism styling to the trade form container and all form sections (Details, Psychology, Risk Management, Notes). Use glass-card classes for consistent frosted-glass appearance."
+        },
+        {
+          "path": "frontend/src/pages/TradeLogPage.tsx",
+          "operation": "modify",
+          "description": "Apply glassmorphism styling to the filter controls container and the trade table wrapper. Ensure table rows maintain readability with the frosted-glass background."
+        },
+        {
+          "path": "frontend/src/pages/AnalyticsPage.tsx",
+          "operation": "modify",
+          "description": "Apply glassmorphism styling to all chart container cards. Each chart section should use glass-card classes with backdrop-blur for a premium look."
+        },
+        {
+          "path": "frontend/src/pages/RiskManagementPage.tsx",
+          "operation": "modify",
+          "description": "Apply glassmorphism styling to the risk settings form, P&L status display, and backup/restore sections. Use glass-card classes consistently."
+        },
+        {
+          "path": "frontend/src/components/ProfileSetupModal.tsx",
+          "operation": "modify",
+          "description": "Apply glassmorphism styling to the modal dialog container with semi-transparent background, backdrop-blur, and subtle border highlights."
+        },
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Apply glassmorphism styling to the sidebar panel with semi-transparent background and backdrop-blur effect, ensuring navigation items remain clearly visible."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Restyle Buy and Sell direction buttons/badges with soft neon borders (green for Buy, red for Sell) and glowing box-shadow on hover/click",
+      "acceptanceCriteria": [
+        "Buy buttons/badges have a soft green neon border with no solid fill background.",
+        "Sell buttons/badges have a soft red neon border with no solid fill background.",
+        "On hover and click, a glowing box-shadow animation activates for the respective color.",
+        "The styling is applied consistently across all pages where Buy/Sell direction is shown."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add neon border utility classes for Buy (green) and Sell (red) with transparent backgrounds, 1-2px neon borders, and hover/active states with glowing box-shadow animations using the profit/loss colors from the design system."
+        },
+        {
+          "path": "frontend/src/pages/NewTradePage.tsx",
+          "operation": "modify",
+          "description": "Replace the Buy/Sell direction button styling in the trade form with neon border classes. Remove solid fills and apply green neon border for Buy, red neon border for Sell, with glow effects on hover and active states."
+        },
+        {
+          "path": "frontend/src/pages/TradeLogPage.tsx",
+          "operation": "modify",
+          "description": "Update the direction badge rendering in the trade table to use neon border styling instead of solid fills. Apply green neon border for Buy trades and red neon border for Sell trades."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Increase sidebar navigation icon sizes and switch to minimalistic icon set with larger clean icons alongside labels",
+      "acceptanceCriteria": [
+        "Each sidebar nav item shows a recognizable minimalistic icon (e.g., from lucide-react) alongside its text label.",
+        "Icons are visually larger than default (at least 22–24px).",
+        "Icons and labels are vertically aligned and do not overflow the sidebar."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Replace or enlarge sidebar navigation icons using lucide-react minimalistic icons. Set icon size to 22-24px. Ensure each nav item (Dashboard, New Trade, Trade Log, Analytics, Risk Management, Settings) displays a clean icon alongside its label with proper vertical alignment."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Add interactive P&L line chart at the top of Dashboard showing net profit/loss for the last 7 days with green/red visual distinction",
+      "acceptanceCriteria": [
+        "A line/area chart appears at the top of DashboardPage above the stat cards.",
+        "The chart displays the last 7 days with correct P&L aggregated from logged trades.",
+        "Days with net profit are rendered in green and days with net loss in red, or the line uses green/red fill zones.",
+        "The chart is responsive and fits within the existing layout without overflow."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/DashboardPage.tsx",
+          "operation": "modify",
+          "description": "Add a P&L line chart component at the top of the page above stat cards using Recharts. Aggregate trade data for the last 7 calendar days, calculate daily net P&L, and render a line/area chart with X-axis showing day labels and Y-axis showing P&L values. Use green stroke/fill for positive days and red for negative days. Apply glassmorphism styling to the chart container."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Add Live Risk-Reward Calculator in New Trade form that auto-calculates Risk per Share, Risk Amount, and Risk:Reward Ratio as user types Entry, Stop Loss, Target, and Quantity",
+      "acceptanceCriteria": [
+        "Risk per Share is displayed and updates live as Entry Price or Stop Loss fields change.",
+        "Risk Amount (risk × quantity) updates live when Quantity, Entry, or Stop Loss fields change.",
+        "Risk:Reward Ratio updates live when Entry, Stop Loss, or Target changes.",
+        "The calculator outputs are shown in a clearly labeled summary block within the New Trade form.",
+        "All existing trade form fields and submit behavior remain unchanged."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/NewTradePage.tsx",
+          "operation": "modify",
+          "description": "Add a Live Risk-Reward Calculator section within the Risk Management section of the trade form. Use React state and useEffect hooks to calculate and display: Risk per Share (|Entry - Stop Loss|), Risk Amount (Risk per Share × Quantity), and Risk:Reward Ratio using Target price. All calculations must update in real-time as Entry Price, Stop Loss, Target, or Quantity fields change. Display the calculated values in a clearly labeled summary block with glassmorphism styling. Reuse calculation functions from frontend/src/lib/tradeUtils.ts where applicable."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Add Trade Conviction Meter (1-5 star rating) to New Trade form and display conviction in Trade Log table",
+      "acceptanceCriteria": [
+        "A 1–5 star selector appears in the New Trade form under the Psychology section.",
+        "The selected conviction value is saved to the trade record in the backend.",
+        "The Trade Log table displays the conviction rating (as stars or numeric) for each trade.",
+        "Conviction field is optional and defaults to 0 or unset if not selected.",
+        "The backend trade data type includes a conviction field (Nat or similar)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/NewTradePage.tsx",
+          "operation": "modify",
+          "description": "Add a Trade Conviction Meter component in the Psychology section of the form. Implement a 1-5 star rating selector (using lucide-react Star icons or a custom component) that allows traders to record their confidence level. Add convictionLevel to the form state (existing field in backend interface as bigint), default to 0n, and include it in the addTrade mutation call. The conviction field maps to the existing convictionLevel field in the Trade type."
+        },
+        {
+          "path": "frontend/src/pages/TradeLogPage.tsx",
+          "operation": "modify",
+          "description": "Add a Conviction column to the trade table that displays the convictionLevel value from each trade record. Render it as stars (1-5 filled stars based on the value) or as a numeric rating. Handle trades with convictionLevel of 0 or undefined gracefully by showing empty stars or a dash."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Add Strategy and Mistake Type filter controls to Trade Log page for real-time trade filtering",
+      "acceptanceCriteria": [
+        "A Strategy dropdown/filter control appears in the Trade Log filter bar, listing all unique strategy/setup values from logged trades plus an 'All' option.",
+        "A Mistake Type dropdown/multi-select appears in the Trade Log filter bar, listing all mistake types (FOMO, Early Entry, etc.) plus an 'All' option.",
+        "Selecting a Strategy or Mistake Type filter updates the displayed trade list in real time.",
+        "These filters compose correctly with existing search, direction, and type filters.",
+        "Clearing a filter restores the full trade list."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/TradeLogPage.tsx",
+          "operation": "modify",
+          "description": "Add Strategy and Mistake Type filter controls to the existing filter bar. Create a Strategy dropdown that lists all unique setup/strategy values extracted from the trades data plus an 'All' option. Create a Mistake Type dropdown listing all unique mistakeType values plus an 'All' option. Add local state for strategyFilter and mistakeTypeFilter. Update the trade filtering logic to include these new filters alongside the existing search, direction, type, and setup filters. Ensure filters compose correctly and clearing a filter (setting to 'All') restores the full filtered list."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "frontend/src/pages/RiskManagementPage.tsx": "Risk management page with glassmorphism cards for live P&L status, account settings form, and backup/restore functionality.",
+  "frontend/src/components/LoginScreen.tsx": "Full-screen branded login page with trading background image, feature highlights, and an \"Login with Internet Identity\" button using the useInternetIdentity hook.",
+  "frontend/src/components/ProfileSetupModal.tsx": "Modal dialog for first-time users to enter their display name on initial login, using the useSaveCallerUserProfile mutation hook.",
+  "frontend/src/hooks/useGetCallerUserProfile.ts": "React Query hook that fetches the authenticated user's profile from the backend, with custom isLoading/isFetched states that account for actor initialization to prevent modal flash.",
+  "frontend/src/hooks/useSaveCallerUserProfile.ts": "React Query mutation hook that saves the authenticated user's profile to the backend and invalidates the currentUserProfile query on success.",
+  "frontend/src/hooks/useQueries.ts": "All React Query hooks for backend operations including trades CRUD, account/risk settings, backup, and user profile — all gated on actor availability.",
+  "frontend/src/components/Layout.tsx": "App shell with glassmorphism sidebar, enlarged 22px lucide-react icons for each nav item, active state indicators, user profile display, and responsive mobile overlay.",
+  "frontend/src/App.tsx": "Main app with TanStack Router, QueryClient, ThemeProvider (dark), and all page routes wired — no authentication guard, opens directly to dashboard.",
+  "frontend/src/pages/DashboardPage.tsx": "Dashboard with 7-day P&L area chart (Recharts) at top, glassmorphism stat cards, recent trades list with neon Buy/Sell badges, and monthly stats panel.",
+  "frontend/src/index.css": "Global styles with OKLCH dark navy color system, glassmorphism utility classes (.glass-card, .glass-sidebar), neon Buy/Sell button/badge classes, conviction star styles, and profit/loss color utilities.",
+  "frontend/tailwind.config.js": "Tailwind config with Space Grotesk/Inter fonts, OKLCH color tokens, custom border radius, neon box-shadow utilities, and animation keyframes.",
+  "frontend/src/pages/NewTradePage.tsx": "New trade form with glassmorphism sections, neon Buy/Sell direction buttons, live Risk-Reward Calculator (risk/share, risk amount, R:R ratio), and 1-5 star Trade Conviction Meter.",
+  "frontend/src/pages/TradeLogPage.tsx": "Trade log table with glassmorphism styling, neon Buy/Sell badges, conviction star display, and Strategy + Mistake Type filter dropdowns composing with existing search/direction/type filters.",
+  "frontend/src/pages/AnalyticsPage.tsx": "Analytics page with glassmorphism chart containers showing monthly P&L bar chart, Buy/Sell pie chart, emotion vs avg P&L, and mistake frequency charts using Recharts.",
+  "frontend/src/pages/SettingsPage.tsx": "Simple settings page with app info and theme description, with caffeine.ai footer attribution."
+}

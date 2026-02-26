@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Dark-themed Trading Journal Web Application built with React.js and Tailwind CSS. Features sidebar navigation, dashboard overview, trade logging form with psychology/mistakes tracking, trade history table, and analytics. No authentication — app opens directly to dashboard. UI uses deep navy/black background with orange accents, glassmorphism effects, and neon-bordered Buy/Sell buttons.",
+  "architectural_notes": [
+    "Frontend: React.js + Tailwind CSS, dark theme (#0f172a background, #f59e0b orange accent), Inter/sans-serif font",
+    "No authentication — app opens directly to Trade Journal dashboard",
+    "Glassmorphism UI style with neon-border Buy/Sell buttons"
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-apply-glassmorphism-styling-across-all-card-components-modals-and-sidebar-panels-use-semi-transparent-backgrounds-e-g-rgba-white-black-with-10-15-opacity-backdrop-blur-and-subtle-border-highlights-to-create-a-premium-frosted-glass-look-consistent-with-the-existing-deep-navy-dark-theme",
+      "title": "Apply glassmorphism styling across all card components, modals, and sidebar panels: use semi-transparent backgrounds (e.g., rgba white/black with 10–15% opacity), backdrop-blur, and subtle border highlights to create a premium frosted-glass look consistent with the existing deep navy dark theme.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-restyle-the-buy-and-sell-direction-buttons-badges-throughout-the-app-new-trade-form-trade-log-table-etc-to-use-soft-neon-borders-instead-of-solid-fills-green-neon-border-for-buy-and-red-neon-border-for-sell-with-a-glowing-box-shadow-effect-that-activates-on-hover-and-click",
+      "title": "Restyle the Buy and Sell direction buttons/badges throughout the app (New Trade form, Trade Log table, etc.) to use soft neon borders instead of solid fills — green neon border for Buy and red neon border for Sell — with a glowing box-shadow effect that activates on hover and click.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-increase-the-size-of-sidebar-navigation-icons-and-switch-to-a-minimalistic-icon-set-each-navigation-item-dashboard-new-trade-trade-history-trade-log-analytics-risk-management-settings-must-display-a-larger-clean-icon-alongside-the-label-text",
+      "title": "Increase the size of sidebar navigation icons and switch to a minimalistic icon set. Each navigation item (Dashboard, New Trade, Trade History/Trade Log, Analytics, Risk Management, Settings) must display a larger, clean icon alongside the label text.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-interactive-p-l-line-chart-at-the-top-of-the-dashboard-page-showing-the-net-profit-loss-for-the-last-7-calendar-days-the-chart-should-use-trade-data-from-the-existing-store-show-day-labels-on-the-x-axis-and-p-l-values-on-the-y-axis-and-visually-distinguish-positive-vs-negative-days-green-vs-red-line-fill",
+      "title": "Add an interactive P&L line chart at the top of the Dashboard page showing the net profit/loss for the last 7 calendar days. The chart should use trade data from the existing store, show day labels on the X-axis and P&L values on the Y-axis, and visually distinguish positive vs negative days (green vs red line/fill).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-live-risk-reward-calculator-section-in-the-new-trade-form-newtradepage-as-the-user-types-entry-price-and-stop-loss-values-automatically-calculate-and-display-risk-per-share-entry-stop-loss-risk-amount-risk-per-share-quantity-and-risk-reward-ratio-using-the-target-price-all-calculations-must-update-in-real-time-without-any-button-press",
+      "title": "Add a Live Risk-Reward Calculator section in the New Trade form (NewTradePage). As the user types Entry Price and Stop Loss values, automatically calculate and display: Risk per Share (|Entry - Stop Loss|), Risk Amount (Risk per Share × Quantity), and Risk:Reward Ratio using the Target price. All calculations must update in real-time without any button press.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-trade-conviction-meter-to-the-new-trade-form-a-1-to-5-star-rating-slider-selector-that-lets-the-trader-record-their-confidence-level-conviction-before-entering-a-trade-this-conviction-value-must-be-saved-as-part-of-the-trade-record-and-displayed-in-the-trade-log-table",
+      "title": "Add a Trade Conviction Meter to the New Trade form — a 1-to-5 star rating slider/selector that lets the trader record their confidence level ('conviction') before entering a trade. This conviction value must be saved as part of the trade record and displayed in the Trade Log table.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-search-and-filter-controls-to-the-trade-log-page-tradelogpage-allowing-users-to-filter-past-trades-by-strategy-setup-strategy-tag-and-by-mistake-type-e-g-fomo-early-entry-etc-the-filters-should-work-alongside-the-existing-filters-and-update-the-trade-table-in-real-time",
+      "title": "Add search and filter controls to the Trade Log page (TradeLogPage) allowing users to filter past trades by Strategy (setup/strategy tag) and by Mistake Type (e.g., FOMO, Early Entry, etc.). The filters should work alongside the existing filters and update the trade table in real-time.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Glassmorphism effect on UI backgrounds for premium dark mode look",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Color-coded Buy/Sell buttons with soft neon borders that glow on click (green for Buy, red for Sell)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Bigger minimalistic sidebar icons alongside navigation text",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Interactive P&L line chart showing last 7 days profit/loss at top of screen",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Live Risk-Reward Calculator that auto-calculates risk per share from Entry Price and Stop Loss",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Trade Conviction Meter: 1-5 star slider to record trader's feeling before entering a trade",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Journal Search/Filters to search past trades by Strategy or Mistake Type",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Trading Journal",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

@@ -1,0 +1,172 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: oklch(0.13 0.02 240);
+    --foreground: oklch(0.93 0.02 240);
+    --card: oklch(0.17 0.025 240);
+    --card-foreground: oklch(0.93 0.02 240);
+    --popover: oklch(0.17 0.025 240);
+    --popover-foreground: oklch(0.93 0.02 240);
+    --primary: oklch(0.72 0.18 55);
+    --primary-foreground: oklch(0.13 0.02 240);
+    --secondary: oklch(0.22 0.03 240);
+    --secondary-foreground: oklch(0.93 0.02 240);
+    --muted: oklch(0.22 0.03 240);
+    --muted-foreground: oklch(0.6 0.03 240);
+    --accent: oklch(0.72 0.18 55);
+    --accent-foreground: oklch(0.13 0.02 240);
+    --destructive: oklch(0.55 0.22 25);
+    --destructive-foreground: oklch(0.93 0.02 240);
+    --border: oklch(0.28 0.03 240);
+    --input: oklch(0.22 0.03 240);
+    --ring: oklch(0.72 0.18 55);
+    --radius: 0.75rem;
+    --profit: oklch(0.65 0.2 145);
+    --loss: oklch(0.58 0.22 25);
+    --profit-neon: oklch(0.72 0.25 145);
+    --loss-neon: oklch(0.62 0.26 25);
+  }
+
+  .dark {
+    --background: oklch(0.13 0.02 240);
+    --foreground: oklch(0.93 0.02 240);
+    --card: oklch(0.17 0.025 240);
+    --card-foreground: oklch(0.93 0.02 240);
+    --popover: oklch(0.17 0.025 240);
+    --popover-foreground: oklch(0.93 0.02 240);
+    --primary: oklch(0.72 0.18 55);
+    --primary-foreground: oklch(0.13 0.02 240);
+    --secondary: oklch(0.22 0.03 240);
+    --secondary-foreground: oklch(0.93 0.02 240);
+    --muted: oklch(0.22 0.03 240);
+    --muted-foreground: oklch(0.6 0.03 240);
+    --accent: oklch(0.72 0.18 55);
+    --accent-foreground: oklch(0.13 0.02 240);
+    --destructive: oklch(0.55 0.22 25);
+    --destructive-foreground: oklch(0.93 0.02 240);
+    --border: oklch(0.28 0.03 240);
+    --input: oklch(0.22 0.03 240);
+    --ring: oklch(0.72 0.18 55);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+@layer components {
+  /* Glassmorphism card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .glass-card-strong {
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-sidebar {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  /* Neon Buy/Sell buttons */
+  .btn-buy {
+    background: transparent;
+    border: 1.5px solid oklch(0.65 0.2 145);
+    color: oklch(0.72 0.25 145);
+    transition: all 0.2s ease;
+  }
+  .btn-buy:hover, .btn-buy.active {
+    background: rgba(34, 197, 94, 0.08);
+    border-color: oklch(0.72 0.25 145);
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.35), 0 0 24px rgba(34, 197, 94, 0.15);
+    color: oklch(0.78 0.25 145);
+  }
+  .btn-buy.selected {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: oklch(0.72 0.25 145);
+    box-shadow: 0 0 16px rgba(34, 197, 94, 0.4), 0 0 32px rgba(34, 197, 94, 0.2);
+    color: oklch(0.82 0.25 145);
+  }
+
+  .btn-sell {
+    background: transparent;
+    border: 1.5px solid oklch(0.58 0.22 25);
+    color: oklch(0.65 0.24 25);
+    transition: all 0.2s ease;
+  }
+  .btn-sell:hover, .btn-sell.active {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: oklch(0.65 0.26 25);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.35), 0 0 24px rgba(239, 68, 68, 0.15);
+    color: oklch(0.72 0.26 25);
+  }
+  .btn-sell.selected {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: oklch(0.65 0.26 25);
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.4), 0 0 32px rgba(239, 68, 68, 0.2);
+    color: oklch(0.75 0.26 25);
+  }
+
+  /* Neon badge variants */
+  .badge-buy {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid oklch(0.65 0.2 145);
+    color: oklch(0.72 0.25 145);
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.2);
+  }
+  .badge-sell {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid oklch(0.58 0.22 25);
+    color: oklch(0.65 0.24 25);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+  }
+
+  /* Conviction star */
+  .star-filled {
+    color: oklch(0.72 0.18 55);
+    filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.5));
+  }
+  .star-empty {
+    color: oklch(0.35 0.03 240);
+  }
+}
+
+@layer utilities {
+  .text-profit {
+    color: oklch(0.65 0.2 145);
+  }
+  .text-loss {
+    color: oklch(0.58 0.22 25);
+  }
+  .bg-profit {
+    background-color: oklch(0.65 0.2 145);
+  }
+  .bg-loss {
+    background-color: oklch(0.58 0.22 25);
+  }
+}
