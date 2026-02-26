@@ -94,17 +94,27 @@ export interface Backup {
     accountSize: number;
     dailyMaxLoss: number;
 }
+export interface UpdateTradeRecord {
+    pnl: number;
+    emotion: string;
+    strategy: string;
+    target: number;
+    stopLoss: number;
+    notes: string;
+    entryPrice: number;
+}
 export interface UserProfile {
     name: string;
 }
 export interface Trade {
     id: bigint;
     pnl: number;
+    marketType: MarketType;
     direction: string;
     stockName: string;
-    tradeType: string;
     emotion: string;
     date: bigint;
+    strategy: string;
     mistakeType: string;
     followedPlan: boolean;
     target: number;
@@ -117,6 +127,13 @@ export interface Trade {
     exitPrice: number;
     riskRewardRatio: number;
 }
+export enum MarketType {
+    cryptocurrency = "cryptocurrency",
+    forex = "forex",
+    stocks = "stocks",
+    option = "option",
+    future = "future"
+}
 export enum UserRole {
     admin = "admin",
     user = "user",
@@ -124,9 +141,10 @@ export enum UserRole {
 }
 export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-    addTrade(date: bigint, stockName: string, tradeType: string, direction: string, entryPrice: number, exitPrice: number, stopLoss: number, target: number, quantity: bigint, isAPlusSetup: boolean, emotion: string, convictionLevel: bigint, followedPlan: boolean, mistakeType: string, notes: string): Promise<bigint>;
+    addTrade(date: bigint, stockName: string, marketType: MarketType, direction: string, entryPrice: number, exitPrice: number, stopLoss: number, target: number, quantity: bigint, isAPlusSetup: boolean, emotion: string, convictionLevel: bigint, strategy: string, followedPlan: boolean, mistakeType: string, notes: string): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     calculatePnlQuery(trade: Trade): Promise<number>;
+    deleteStrategy(name: string): Promise<void>;
     deleteTrade(id: bigint): Promise<void>;
     exportBackup(): Promise<Backup>;
     getAccountSize(): Promise<number>;
@@ -139,18 +157,21 @@ export interface backendInterface {
         accountSize: number;
         dailyMaxLoss: number;
     }>;
+    getStrategies(): Promise<Array<[string, bigint]>>;
     getTotalTradesCount(): Promise<bigint>;
     getTradeById(id: bigint): Promise<Trade | null>;
     getTrades(): Promise<Array<Trade>>;
+    getTradesByStrategy(strategy: string): Promise<Array<Trade>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     importBackup(backup: Backup): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    saveStrategy(name: string): Promise<void>;
     setAccountSize(size: number): Promise<void>;
     setDailyMaxLoss(limit: number): Promise<void>;
-    updateTrade(id: bigint, date: bigint, stockName: string, tradeType: string, direction: string, entryPrice: number, exitPrice: number, stopLoss: number, target: number, quantity: bigint, isAPlusSetup: boolean, emotion: string, convictionLevel: bigint, followedPlan: boolean, mistakeType: string, notes: string): Promise<void>;
+    updateTrade(tradeId: bigint, update: UpdateTradeRecord): Promise<Trade | null>;
 }
-import type { Trade as _Trade, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { Backup as _Backup, MarketType as _MarketType, Trade as _Trade, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -167,45 +188,59 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async addTrade(arg0: bigint, arg1: string, arg2: string, arg3: string, arg4: number, arg5: number, arg6: number, arg7: number, arg8: bigint, arg9: boolean, arg10: string, arg11: bigint, arg12: boolean, arg13: string, arg14: string): Promise<bigint> {
+    async addTrade(arg0: bigint, arg1: string, arg2: MarketType, arg3: string, arg4: number, arg5: number, arg6: number, arg7: number, arg8: bigint, arg9: boolean, arg10: string, arg11: bigint, arg12: string, arg13: boolean, arg14: string, arg15: string): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.addTrade(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
+                const result = await this.actor.addTrade(arg0, arg1, to_candid_MarketType_n1(this._uploadFile, this._downloadFile, arg2), arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addTrade(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
+            const result = await this.actor.addTrade(arg0, arg1, to_candid_MarketType_n1(this._uploadFile, this._downloadFile, arg2), arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
             return result;
         }
     }
     async assignCallerUserRole(arg0: Principal, arg1: UserRole): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n1(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n3(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n1(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n3(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
     async calculatePnlQuery(arg0: Trade): Promise<number> {
         if (this.processError) {
             try {
-                const result = await this.actor.calculatePnlQuery(arg0);
+                const result = await this.actor.calculatePnlQuery(to_candid_Trade_n5(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.calculatePnlQuery(arg0);
+            const result = await this.actor.calculatePnlQuery(to_candid_Trade_n5(this._uploadFile, this._downloadFile, arg0));
+            return result;
+        }
+    }
+    async deleteStrategy(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteStrategy(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteStrategy(arg0);
             return result;
         }
     }
@@ -227,14 +262,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.exportBackup();
-                return result;
+                return from_candid_Backup_n7(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.exportBackup();
-            return result;
+            return from_candid_Backup_n7(this._uploadFile, this._downloadFile, result);
         }
     }
     async getAccountSize(): Promise<number> {
@@ -255,28 +290,28 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n4(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n15(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n4(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n15(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCurrentTimestamp(): Promise<bigint> {
@@ -325,6 +360,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getStrategies(): Promise<Array<[string, bigint]>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getStrategies();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getStrategies();
+            return result;
+        }
+    }
     async getTotalTradesCount(): Promise<bigint> {
         if (this.processError) {
             try {
@@ -343,55 +392,69 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getTradeById(arg0);
-                return from_candid_opt_n6(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getTradeById(arg0);
-            return from_candid_opt_n6(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
         }
     }
     async getTrades(): Promise<Array<Trade>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getTrades();
-                return result;
+                return from_candid_vec_n9(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getTrades();
-            return result;
+            return from_candid_vec_n9(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getTradesByStrategy(arg0: string): Promise<Array<Trade>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getTradesByStrategy(arg0);
+                return from_candid_vec_n9(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getTradesByStrategy(arg0);
+            return from_candid_vec_n9(this._uploadFile, this._downloadFile, result);
         }
     }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
         }
     }
     async importBackup(arg0: Backup): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.importBackup(arg0);
+                const result = await this.actor.importBackup(to_candid_Backup_n18(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.importBackup(arg0);
+            const result = await this.actor.importBackup(to_candid_Backup_n18(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -423,6 +486,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async saveStrategy(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveStrategy(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveStrategy(arg0);
+            return result;
+        }
+    }
     async setAccountSize(arg0: number): Promise<void> {
         if (this.processError) {
             try {
@@ -451,31 +528,131 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateTrade(arg0: bigint, arg1: bigint, arg2: string, arg3: string, arg4: string, arg5: number, arg6: number, arg7: number, arg8: number, arg9: bigint, arg10: boolean, arg11: string, arg12: bigint, arg13: boolean, arg14: string, arg15: string): Promise<void> {
+    async updateTrade(arg0: bigint, arg1: UpdateTradeRecord): Promise<Trade | null> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateTrade(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
-                return result;
+                const result = await this.actor.updateTrade(arg0, arg1);
+                return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateTrade(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
-            return result;
+            const result = await this.actor.updateTrade(arg0, arg1);
+            return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
         }
     }
 }
-function from_candid_UserRole_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n5(_uploadFile, _downloadFile, value);
+function from_candid_Backup_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Backup): Backup {
+    return from_candid_record_n8(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+function from_candid_MarketType_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _MarketType): MarketType {
+    return from_candid_variant_n13(_uploadFile, _downloadFile, value);
+}
+function from_candid_Trade_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Trade): Trade {
+    return from_candid_record_n11(_uploadFile, _downloadFile, value);
+}
+function from_candid_UserRole_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n16(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Trade]): Trade | null {
-    return value.length === 0 ? null : value[0];
+function from_candid_opt_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Trade]): Trade | null {
+    return value.length === 0 ? null : from_candid_Trade_n10(_uploadFile, _downloadFile, value[0]);
 }
-function from_candid_variant_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    pnl: number;
+    marketType: _MarketType;
+    direction: string;
+    stockName: string;
+    emotion: string;
+    date: bigint;
+    strategy: string;
+    mistakeType: string;
+    followedPlan: boolean;
+    target: number;
+    convictionLevel: bigint;
+    stopLoss: number;
+    notes: string;
+    quantity: bigint;
+    entryPrice: number;
+    isAPlusSetup: boolean;
+    exitPrice: number;
+    riskRewardRatio: number;
+}): {
+    id: bigint;
+    pnl: number;
+    marketType: MarketType;
+    direction: string;
+    stockName: string;
+    emotion: string;
+    date: bigint;
+    strategy: string;
+    mistakeType: string;
+    followedPlan: boolean;
+    target: number;
+    convictionLevel: bigint;
+    stopLoss: number;
+    notes: string;
+    quantity: bigint;
+    entryPrice: number;
+    isAPlusSetup: boolean;
+    exitPrice: number;
+    riskRewardRatio: number;
+} {
+    return {
+        id: value.id,
+        pnl: value.pnl,
+        marketType: from_candid_MarketType_n12(_uploadFile, _downloadFile, value.marketType),
+        direction: value.direction,
+        stockName: value.stockName,
+        emotion: value.emotion,
+        date: value.date,
+        strategy: value.strategy,
+        mistakeType: value.mistakeType,
+        followedPlan: value.followedPlan,
+        target: value.target,
+        convictionLevel: value.convictionLevel,
+        stopLoss: value.stopLoss,
+        notes: value.notes,
+        quantity: value.quantity,
+        entryPrice: value.entryPrice,
+        isAPlusSetup: value.isAPlusSetup,
+        exitPrice: value.exitPrice,
+        riskRewardRatio: value.riskRewardRatio
+    };
+}
+function from_candid_record_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    trades: Array<_Trade>;
+    accountSize: number;
+    dailyMaxLoss: number;
+}): {
+    trades: Array<Trade>;
+    accountSize: number;
+    dailyMaxLoss: number;
+} {
+    return {
+        trades: from_candid_vec_n9(_uploadFile, _downloadFile, value.trades),
+        accountSize: value.accountSize,
+        dailyMaxLoss: value.dailyMaxLoss
+    };
+}
+function from_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    cryptocurrency: null;
+} | {
+    forex: null;
+} | {
+    stocks: null;
+} | {
+    option: null;
+} | {
+    future: null;
+}): MarketType {
+    return "cryptocurrency" in value ? MarketType.cryptocurrency : "forex" in value ? MarketType.forex : "stocks" in value ? MarketType.stocks : "option" in value ? MarketType.option : "future" in value ? MarketType.future : value;
+}
+function from_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -484,10 +661,123 @@ function from_candid_variant_n5(_uploadFile: (file: ExternalBlob) => Promise<Uin
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
-function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
+function from_candid_vec_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Trade>): Array<Trade> {
+    return value.map((x)=>from_candid_Trade_n10(_uploadFile, _downloadFile, x));
+}
+function to_candid_Backup_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Backup): _Backup {
+    return to_candid_record_n19(_uploadFile, _downloadFile, value);
+}
+function to_candid_MarketType_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: MarketType): _MarketType {
     return to_candid_variant_n2(_uploadFile, _downloadFile, value);
 }
-function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
+function to_candid_Trade_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Trade): _Trade {
+    return to_candid_record_n6(_uploadFile, _downloadFile, value);
+}
+function to_candid_UserRole_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
+    return to_candid_variant_n4(_uploadFile, _downloadFile, value);
+}
+function to_candid_record_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    trades: Array<Trade>;
+    accountSize: number;
+    dailyMaxLoss: number;
+}): {
+    trades: Array<_Trade>;
+    accountSize: number;
+    dailyMaxLoss: number;
+} {
+    return {
+        trades: to_candid_vec_n20(_uploadFile, _downloadFile, value.trades),
+        accountSize: value.accountSize,
+        dailyMaxLoss: value.dailyMaxLoss
+    };
+}
+function to_candid_record_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    pnl: number;
+    marketType: MarketType;
+    direction: string;
+    stockName: string;
+    emotion: string;
+    date: bigint;
+    strategy: string;
+    mistakeType: string;
+    followedPlan: boolean;
+    target: number;
+    convictionLevel: bigint;
+    stopLoss: number;
+    notes: string;
+    quantity: bigint;
+    entryPrice: number;
+    isAPlusSetup: boolean;
+    exitPrice: number;
+    riskRewardRatio: number;
+}): {
+    id: bigint;
+    pnl: number;
+    marketType: _MarketType;
+    direction: string;
+    stockName: string;
+    emotion: string;
+    date: bigint;
+    strategy: string;
+    mistakeType: string;
+    followedPlan: boolean;
+    target: number;
+    convictionLevel: bigint;
+    stopLoss: number;
+    notes: string;
+    quantity: bigint;
+    entryPrice: number;
+    isAPlusSetup: boolean;
+    exitPrice: number;
+    riskRewardRatio: number;
+} {
+    return {
+        id: value.id,
+        pnl: value.pnl,
+        marketType: to_candid_MarketType_n1(_uploadFile, _downloadFile, value.marketType),
+        direction: value.direction,
+        stockName: value.stockName,
+        emotion: value.emotion,
+        date: value.date,
+        strategy: value.strategy,
+        mistakeType: value.mistakeType,
+        followedPlan: value.followedPlan,
+        target: value.target,
+        convictionLevel: value.convictionLevel,
+        stopLoss: value.stopLoss,
+        notes: value.notes,
+        quantity: value.quantity,
+        entryPrice: value.entryPrice,
+        isAPlusSetup: value.isAPlusSetup,
+        exitPrice: value.exitPrice,
+        riskRewardRatio: value.riskRewardRatio
+    };
+}
+function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: MarketType): {
+    cryptocurrency: null;
+} | {
+    forex: null;
+} | {
+    stocks: null;
+} | {
+    option: null;
+} | {
+    future: null;
+} {
+    return value == MarketType.cryptocurrency ? {
+        cryptocurrency: null
+    } : value == MarketType.forex ? {
+        forex: null
+    } : value == MarketType.stocks ? {
+        stocks: null
+    } : value == MarketType.option ? {
+        option: null
+    } : value == MarketType.future ? {
+        future: null
+    } : value;
+}
+function to_candid_variant_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
     admin: null;
 } | {
     user: null;
@@ -501,6 +791,9 @@ function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     } : value == UserRole.guest ? {
         guest: null
     } : value;
+}
+function to_candid_vec_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<Trade>): Array<_Trade> {
+    return value.map((x)=>to_candid_Trade_n5(_uploadFile, _downloadFile, x));
 }
 export interface CreateActorOptions {
     agent?: Agent;

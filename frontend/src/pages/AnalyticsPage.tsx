@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useGetTrades } from '../hooks/useQueries';
+import { Trade } from '../backend';
 import {
   BarChart,
   Bar,
@@ -11,10 +12,9 @@ import {
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
   Legend,
 } from 'recharts';
+import { TrendingUp, Trophy, ArrowUpDown } from 'lucide-react';
 
 function formatCurrency(val: number) {
   return `₹${val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -28,8 +28,82 @@ const COLORS = [
   'oklch(0.6 0.15 280)',
 ];
 
+type SortKey = 'strategy' | 'totalTrades' | 'winRate' | 'totalPnl' | 'avgRR' | 'avgRisk';
+type SortDir = 'asc' | 'desc';
+
+interface StrategyStats {
+  strategy: string;
+  totalTrades: number;
+  winRate: number;
+  totalPnl: number;
+  avgRR: number;
+  avgRisk: number;
+}
+
+function computeStrategyStats(trades: Trade[]): StrategyStats[] {
+  const map: Record<string, Trade[]> = {};
+  trades.forEach((t) => {
+    const key = t.strategy?.trim() || 'Untagged';
+    if (!map[key]) map[key] = [];
+    map[key].push(t);
+  });
+
+  return Object.entries(map).map(([strategy, ts]) => {
+    const wins = ts.filter((t) => t.pnl > 0).length;
+    const winRate = ts.length > 0 ? (wins / ts.length) * 100 : 0;
+    const totalPnl = ts.reduce((sum, t) => sum + t.pnl, 0);
+    const avgRR = ts.reduce((sum, t) => sum + t.riskRewardRatio, 0) / ts.length;
+    const avgRisk =
+      ts.reduce((sum, t) => sum + Math.abs(t.entryPrice - t.stopLoss), 0) / ts.length;
+    return {
+      strategy,
+      totalTrades: ts.length,
+      winRate: parseFloat(winRate.toFixed(1)),
+      totalPnl: parseFloat(totalPnl.toFixed(2)),
+      avgRR: parseFloat(avgRR.toFixed(2)),
+      avgRisk: parseFloat(avgRisk.toFixed(2)),
+    };
+  });
+}
+
+function SortableHeader({
+  label,
+  sortKey,
+  currentKey,
+  currentDir,
+  onSort,
+}: {
+  label: string;
+  sortKey: SortKey;
+  currentKey: SortKey;
+  currentDir: SortDir;
+  onSort: (key: SortKey) => void;
+}) {
+  const active = currentKey === sortKey;
+  return (
+    <th
+      className="px-3 py-2.5 text-left text-xs font-medium text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors whitespace-nowrap"
+      onClick={() => onSort(sortKey)}
+    >
+      <span className="flex items-center gap-1">
+        {label}
+        <ArrowUpDown
+          size={11}
+          className={active ? 'text-primary' : 'text-muted-foreground/40'}
+        />
+        {active && (
+          <span className="text-primary text-[10px]">{currentDir === 'asc' ? '↑' : '↓'}</span>
+        )}
+      </span>
+    </th>
+  );
+}
+
 export default function AnalyticsPage() {
   const { data: trades = [], isLoading } = useGetTrades();
+
+  const [sortKey, setSortKey] = useState<SortKey>('totalPnl');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   const monthlyData = useMemo(() => {
     const map: Record<string, { month: string; pnl: number; trades: number; wins: number }> = {};
@@ -83,6 +157,42 @@ export default function AnalyticsPage() {
       .map(([name, count]) => ({ name, count }));
   }, [trades]);
 
+  const strategyStats = useMemo(() => computeStrategyStats(trades), [trades]);
+
+  const bestStrategy = useMemo(() => {
+    if (strategyStats.length === 0) return null;
+    return strategyStats.reduce((best, s) => (s.totalPnl > best.totalPnl ? s : best));
+  }, [strategyStats]);
+
+  const sortedStrategyStats = useMemo(() => {
+    return [...strategyStats].sort((a, b) => {
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      if (typeof av === 'string' && typeof bv === 'string') {
+        return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+      }
+      const an = av as number;
+      const bn = bv as number;
+      return sortDir === 'asc' ? an - bn : bn - an;
+    });
+  }, [strategyStats, sortKey, sortDir]);
+
+  const strategyChartData = useMemo(() => {
+    return [...strategyStats]
+      .sort((a, b) => b.totalPnl - a.totalPnl)
+      .slice(0, 10)
+      .map((s) => ({ name: s.strategy, pnl: s.totalPnl, isBest: s.strategy === bestStrategy?.strategy }));
+  }, [strategyStats, bestStrategy]);
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  }
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -93,6 +203,20 @@ export default function AnalyticsPage() {
               {p.name}: {typeof p.value === 'number' && p.name?.includes('P&L') ? formatCurrency(p.value) : p.value}
             </p>
           ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const StrategyTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="glass-card-strong rounded-xl px-3 py-2 text-sm">
+          <p className="text-foreground text-xs font-medium mb-1">{label}</p>
+          <p className={`font-semibold ${payload[0].value >= 0 ? 'text-profit' : 'text-loss'}`}>
+            P&L: {formatCurrency(payload[0].value)}
+          </p>
         </div>
       );
     }
@@ -214,6 +338,131 @@ export default function AnalyticsPage() {
               </BarChart>
             </ResponsiveContainer>
           )}
+        </div>
+      </div>
+
+      {/* ── Strategy Performance ── */}
+      <div className="space-y-5">
+        <div className="flex items-center gap-2">
+          <TrendingUp size={20} className="text-primary" />
+          <h2 className="font-display text-xl font-bold text-foreground">Strategy Performance</h2>
+        </div>
+
+        {/* Best strategy callout */}
+        {bestStrategy && (
+          <div className="glass-card rounded-2xl p-4 border border-[#F59E0B]/30 bg-[#F59E0B]/5 flex items-center gap-3">
+            <Trophy size={20} className="text-[#F59E0B] shrink-0" />
+            <div>
+              <p className="text-xs text-muted-foreground">Best Performing Strategy</p>
+              <p className="font-display font-bold text-foreground">
+                {bestStrategy.strategy}
+                <span className="ml-2 text-sm font-normal text-profit">
+                  {bestStrategy.totalPnl >= 0 ? '+' : ''}{formatCurrency(bestStrategy.totalPnl)}
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Sortable Table */}
+          <div className="glass-card rounded-2xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <SortableHeader label="Strategy" sortKey="strategy" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                    <SortableHeader label="Trades" sortKey="totalTrades" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                    <SortableHeader label="Win %" sortKey="winRate" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                    <SortableHeader label="Total P&L" sortKey="totalPnl" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                    <SortableHeader label="Avg R:R" sortKey="avgRR" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                    <SortableHeader label="Avg Risk" sortKey="avgRisk" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedStrategyStats.map((s) => {
+                    const isBest = s.strategy === bestStrategy?.strategy;
+                    return (
+                      <tr
+                        key={s.strategy}
+                        className={`border-b border-white/5 transition-colors ${
+                          isBest
+                            ? 'bg-[#F59E0B]/8 hover:bg-[#F59E0B]/12'
+                            : 'hover:bg-white/3'
+                        }`}
+                      >
+                        <td className="px-3 py-2.5">
+                          <div className="flex items-center gap-1.5">
+                            {isBest && <Trophy size={12} className="text-[#F59E0B] shrink-0" />}
+                            <span className={`font-medium truncate max-w-[120px] ${isBest ? 'text-[#F59E0B]' : 'text-foreground'}`}>
+                              {s.strategy}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5 text-muted-foreground">{s.totalTrades}</td>
+                        <td className="px-3 py-2.5">
+                          <span className={s.winRate >= 50 ? 'text-profit' : 'text-loss'}>
+                            {s.winRate.toFixed(1)}%
+                          </span>
+                        </td>
+                        <td className={`px-3 py-2.5 font-semibold ${s.totalPnl >= 0 ? 'text-profit' : 'text-loss'}`}>
+                          {s.totalPnl >= 0 ? '+' : ''}{formatCurrency(s.totalPnl)}
+                        </td>
+                        <td className="px-3 py-2.5 text-muted-foreground">
+                          {s.avgRR !== 0 ? `1:${s.avgRR.toFixed(2)}` : '—'}
+                        </td>
+                        <td className="px-3 py-2.5 text-muted-foreground">
+                          ₹{s.avgRisk.toFixed(2)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Bar Chart */}
+          <div className="glass-card rounded-2xl p-5">
+            <h3 className="font-display font-semibold text-foreground mb-4 text-sm">
+              Total P&amp;L by Strategy
+            </h3>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={strategyChartData} margin={{ top: 4, right: 8, left: 0, bottom: 40 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fill: 'oklch(0.6 0.03 240)', fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                  angle={-35}
+                  textAnchor="end"
+                  interval={0}
+                />
+                <YAxis
+                  tick={{ fill: 'oklch(0.6 0.03 240)', fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `₹${v}`}
+                />
+                <Tooltip content={<StrategyTooltip />} />
+                <Bar dataKey="pnl" name="P&L" radius={[4, 4, 0, 0]}>
+                  {strategyChartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={
+                        entry.isBest
+                          ? 'oklch(0.72 0.18 55)'
+                          : entry.pnl >= 0
+                          ? 'oklch(0.65 0.2 145)'
+                          : 'oklch(0.58 0.22 25)'
+                      }
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>

@@ -2,75 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-apply-glassmorphism-styling-across-all-card-components-modals-and-sidebar-panels-use-semi-transparent-backgrounds-e-g-rgba-white-black-with-10-15-opacity-backdrop-blur-and-subtle-border-highlights-to-create-a-premium-frosted-glass-look-consistent-with-the-existing-deep-navy-dark-theme",
-      "featureTitle": "Apply glassmorphism styling across all card components, modals, and sidebar panels: use semi-transparent backgrounds (e.g., rgba white/black with 10–15% opacity), backdrop-blur, and subtle border highlights to create a premium frosted-glass look consistent with the existing deep navy dark theme.",
+      "featureId": "feature-add-react-query-hooks-in-usequeries-ts-for-the-three-new-backend-functions-usegetstrategies-fetches-all-strategies-for-current-user-usesavestrategy-mutation-and-usedeletestrategy-mutation-also-add-an-useupdatetrade-mutation-hook-that-calls-the-backend-updatetrade-function-and-invalidates-the-trades-query-on-success",
+      "featureTitle": "Add React Query hooks in useQueries.ts for the three new backend functions: useGetStrategies (fetches all strategies for current user), useSaveStrategy (mutation), and useDeleteStrategy (mutation). Also add an useUpdateTrade mutation hook that calls the backend updateTrade function and invalidates the trades query on success.",
       "files": [
-        "frontend/src/components/Layout.tsx",
-        "frontend/src/index.css",
-        "frontend/src/pages/AnalyticsPage.tsx",
-        "frontend/src/pages/DashboardPage.tsx",
-        "frontend/src/pages/NewTradePage.tsx",
-        "frontend/src/pages/RiskManagementPage.tsx",
-        "frontend/src/pages/TradeLogPage.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-restyle-the-buy-and-sell-direction-buttons-badges-throughout-the-app-new-trade-form-trade-log-table-etc-to-use-soft-neon-borders-instead-of-solid-fills-green-neon-border-for-buy-and-red-neon-border-for-sell-with-a-glowing-box-shadow-effect-that-activates-on-hover-and-click",
-      "featureTitle": "Restyle the Buy and Sell direction buttons/badges throughout the app (New Trade form, Trade Log table, etc.) to use soft neon borders instead of solid fills — green neon border for Buy and red neon border for Sell — with a glowing box-shadow effect that activates on hover and click.",
-      "files": [
-        "frontend/src/index.css",
-        "frontend/src/pages/NewTradePage.tsx",
-        "frontend/src/pages/TradeLogPage.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-increase-the-size-of-sidebar-navigation-icons-and-switch-to-a-minimalistic-icon-set-each-navigation-item-dashboard-new-trade-trade-history-trade-log-analytics-risk-management-settings-must-display-a-larger-clean-icon-alongside-the-label-text",
-      "featureTitle": "Increase the size of sidebar navigation icons and switch to a minimalistic icon set. Each navigation item (Dashboard, New Trade, Trade History/Trade Log, Analytics, Risk Management, Settings) must display a larger, clean icon alongside the label text.",
-      "files": [
-        "frontend/src/components/Layout.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-an-interactive-p-l-line-chart-at-the-top-of-the-dashboard-page-showing-the-net-profit-loss-for-the-last-7-calendar-days-the-chart-should-use-trade-data-from-the-existing-store-show-day-labels-on-the-x-axis-and-p-l-values-on-the-y-axis-and-visually-distinguish-positive-vs-negative-days-green-vs-red-line-fill",
-      "featureTitle": "Add an interactive P&L line chart at the top of the Dashboard page showing the net profit/loss for the last 7 calendar days. The chart should use trade data from the existing store, show day labels on the X-axis and P&L values on the Y-axis, and visually distinguish positive vs negative days (green vs red line/fill).",
-      "files": [
-        "frontend/src/pages/DashboardPage.tsx"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -86,10 +21,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-live-risk-reward-calculator-section-in-the-new-trade-form-newtradepage-as-the-user-types-entry-price-and-stop-loss-values-automatically-calculate-and-display-risk-per-share-entry-stop-loss-risk-amount-risk-per-share-quantity-and-risk-reward-ratio-using-the-target-price-all-calculations-must-update-in-real-time-without-any-button-press",
-      "featureTitle": "Add a Live Risk-Reward Calculator section in the New Trade form (NewTradePage). As the user types Entry Price and Stop Loss values, automatically calculate and display: Risk per Share (|Entry - Stop Loss|), Risk Amount (Risk per Share × Quantity), and Risk:Reward Ratio using the Target price. All calculations must update in real-time without any button press.",
+      "featureId": "feature-add-a-strategy-performance-analytics-section-to-analyticspage-tsx-group-the-user-s-trades-by-strategy-name-and-compute-per-strategy-metrics-total-trades-win-rate-total-p-l-average-r-r-and-average-risk-display-results-in-two-ways-1-a-sortable-table-where-clicking-any-column-header-sorts-by-that-column-and-2-a-bar-chart-using-recharts-showing-total-p-l-per-strategy-automatically-highlight-the-best-performing-strategy-highest-total-p-l-with-a-distinct-visual-indicator-e-g-a-gold-badge-or-highlighted-row-if-a-trade-has-no-strategy-group-it-under-untagged",
+      "featureTitle": "Add a Strategy Performance Analytics section to AnalyticsPage.tsx. Group the user's trades by strategy name and compute per-strategy metrics: Total Trades, Win Rate %, Total P&L, Average R:R, and Average Risk. Display results in two ways: (1) a sortable table where clicking any column header sorts by that column, and (2) a bar chart (using Recharts) showing Total P&L per strategy. Automatically highlight the best-performing strategy (highest Total P&L) with a distinct visual indicator (e.g., a gold badge or highlighted row). If a trade has no strategy, group it under 'Untagged'.",
       "files": [
-        "frontend/src/pages/NewTradePage.tsx"
+        "frontend/src/pages/AnalyticsPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -105,10 +40,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-trade-conviction-meter-to-the-new-trade-form-a-1-to-5-star-rating-slider-selector-that-lets-the-trader-record-their-confidence-level-conviction-before-entering-a-trade-this-conviction-value-must-be-saved-as-part-of-the-trade-record-and-displayed-in-the-trade-log-table",
-      "featureTitle": "Add a Trade Conviction Meter to the New Trade form — a 1-to-5 star rating slider/selector that lets the trader record their confidence level ('conviction') before entering a trade. This conviction value must be saved as part of the trade record and displayed in the Trade Log table.",
+      "featureId": "feature-add-an-edit-button-to-each-trade-card-row-in-tradelogpage-tsx-clicking-edit-opens-a-modal-pre-filled-with-the-trade-s-current-data-the-modal-must-include-editable-fields-for-entry-stop-loss-target-p-l-strategy-with-autocomplete-see-req-7-emotion-and-notes-on-submit-call-the-useupdatetrade-mutation-on-success-close-the-modal-and-invalidate-the-trades-and-analytics-queries-so-all-data-refreshes-automatically",
+      "featureTitle": "Add an Edit button to each trade card/row in TradeLogPage.tsx. Clicking Edit opens a modal pre-filled with the trade's current data. The modal must include editable fields for: Entry, Stop Loss, Target, P&L, Strategy (with autocomplete, see REQ-7), Emotion, and Notes. On submit, call the useUpdateTrade mutation. On success, close the modal and invalidate the trades and analytics queries so all data refreshes automatically.",
       "files": [
-        "frontend/src/pages/NewTradePage.tsx",
+        "frontend/src/components/EditTradeModal.tsx",
         "frontend/src/pages/TradeLogPage.tsx"
       ],
       "components": [
@@ -125,10 +60,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-search-and-filter-controls-to-the-trade-log-page-tradelogpage-allowing-users-to-filter-past-trades-by-strategy-setup-strategy-tag-and-by-mistake-type-e-g-fomo-early-entry-etc-the-filters-should-work-alongside-the-existing-filters-and-update-the-trade-table-in-real-time",
-      "featureTitle": "Add search and filter controls to the Trade Log page (TradeLogPage) allowing users to filter past trades by Strategy (setup/strategy tag) and by Mistake Type (e.g., FOMO, Early Entry, etc.). The filters should work alongside the existing filters and update the trade table in real-time.",
+      "featureId": "feature-replace-the-plain-strategy-text-input-in-both-newtradepage-tsx-and-the-edit-trade-modal-with-a-smart-autocomplete-input-component-the-component-must-1-fetch-strategies-via-usegetstrategies-2-filter-suggestions-case-insensitively-as-the-user-types-3-support-keyword-abbreviation-matching-so-partial-tokens-match-anywhere-in-the-strategy-name-e-g-typing-90-suggests-90-ema-pullback-typing-sr-suggests-support-resistance-4-show-a-dropdown-list-of-matching-suggestions-5-allow-selection-via-mouse-click-or-keyboard-arrow-keys-enter-6-dismiss-on-escape-or-outside-click-the-strategy-value-is-still-saved-as-free-text",
+      "featureTitle": "Replace the plain strategy text input (in both NewTradePage.tsx and the Edit Trade modal) with a smart autocomplete input component. The component must: (1) fetch strategies via useGetStrategies; (2) filter suggestions case-insensitively as the user types; (3) support keyword/abbreviation matching so partial tokens match anywhere in the strategy name (e.g., typing '90' suggests '90 EMA Pullback', typing 'SR' suggests 'Support & Resistance'); (4) show a dropdown list of matching suggestions; (5) allow selection via mouse click or keyboard (arrow keys + Enter); (6) dismiss on Escape or outside click. The strategy value is still saved as free text.",
       "files": [
-        "frontend/src/pages/TradeLogPage.tsx"
+        "frontend/src/components/StrategyAutocomplete.tsx",
+        "frontend/src/pages/NewTradePage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -140,6 +76,25 @@
       ],
       "testIds": [
         "REQ-7"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-strategy-manager-section-to-settingspage-tsx-display-the-user-s-saved-strategies-as-a-list-with-a-delete-button-next-to-each-entry-clicking-delete-calls-the-usedeletestrategy-mutation-and-removes-it-from-the-list-show-an-empty-state-message-if-no-strategies-are-saved",
+      "featureTitle": "Add a 'Strategy Manager' section to SettingsPage.tsx. Display the user's saved strategies as a list with a Delete button next to each entry. Clicking Delete calls the useDeleteStrategy mutation and removes it from the list. Show an empty state message if no strategies are saved.",
+      "files": [
+        "frontend/src/pages/SettingsPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-8"
       ],
       "confidence": "high"
     }

@@ -1,110 +1,101 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T02:55:38.518Z",
+  "generatedAt": "2026-02-26T07:44:59.109Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 7,
-    "implemented": 7,
+    "total": 9,
+    "implemented": 5,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Apply glassmorphism styling across all card components, modals, and sidebar panels: use semi-transparent backgrounds (e.g., rgba white/black with 10–15% opacity), backdrop-blur, and subtle border highlights to create a premium frosted-glass look consistent with the existing deep navy dark theme.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/pages/DashboardPage.tsx",
-          "frontend/src/pages/NewTradePage.tsx",
-          "frontend/src/pages/TradeLogPage.tsx",
-          "frontend/src/pages/AnalyticsPage.tsx",
-          "frontend/src/pages/RiskManagementPage.tsx",
-          "frontend/src/components/ProfileSetupModal.tsx",
-          "frontend/src/components/Layout.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/pages/DashboardPage.tsx",
-          "frontend/src/pages/NewTradePage.tsx",
-          "frontend/src/pages/TradeLogPage.tsx",
-          "frontend/src/pages/AnalyticsPage.tsx",
-          "frontend/src/pages/RiskManagementPage.tsx",
-          "frontend/src/components/Layout.tsx"
-        ]
+        "summary": "Extend the backend actor to support a 'strategies' collection per user. Add the following functions: (1) saveStrategy(name: Text) – stores a strategy name under the caller's user ID if it doesn't already exist; (2) getStrategies() – returns all strategy names for the caller; (3) deleteStrategy(name: Text) – removes a strategy by name for the caller. Strategy records must be linked to user principal and include a createdAt timestamp.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Restyle the Buy and Sell direction buttons/badges throughout the app (New Trade form, Trade Log table, etc.) to use soft neon borders instead of solid fills — green neon border for Buy and red neon border for Sell — with a glowing box-shadow effect that activates on hover and click.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/pages/NewTradePage.tsx",
-          "frontend/src/pages/TradeLogPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/pages/NewTradePage.tsx",
-          "frontend/src/pages/TradeLogPage.tsx"
-        ]
+        "summary": "Add an updateTrade function to the backend actor that accepts a trade ID and an update record with fields: entry (Float), stopLoss (Float), target (Float), pnl (Float), strategy (Text), emotion (Text), notes (Text). The function must update the specified trade for the authenticated caller, set an updatedAt timestamp, and return the updated trade. Only the trade owner may update their own trades.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "Increase the size of sidebar navigation icons and switch to a minimalistic icon set. Each navigation item (Dashboard, New Trade, Trade History/Trade Log, Analytics, Risk Management, Settings) must display a larger, clean icon alongside the label text.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/Layout.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/Layout.tsx"
-        ]
+        "summary": "When a trade is saved (new trade creation) and the strategy field is non-empty, automatically call saveStrategy with the strategy name so it is stored in the strategies collection. This must happen server-side inside the trade creation handler.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-4",
-        "summary": "Add an interactive P&L line chart at the top of the Dashboard page showing the net profit/loss for the last 7 calendar days. The chart should use trade data from the existing store, show day labels on the X-axis and P&L values on the Y-axis, and visually distinguish positive vs negative days (green vs red line/fill).",
+        "summary": "Add React Query hooks in useQueries.ts for the three new backend functions: useGetStrategies (fetches all strategies for current user), useSaveStrategy (mutation), and useDeleteStrategy (mutation). Also add an useUpdateTrade mutation hook that calls the backend updateTrade function and invalidates the trades query on success.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/DashboardPage.tsx"
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/pages/DashboardPage.tsx"
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
         "id": "REQ-5",
-        "summary": "Add a Live Risk-Reward Calculator section in the New Trade form (NewTradePage). As the user types Entry Price and Stop Loss values, automatically calculate and display: Risk per Share (|Entry - Stop Loss|), Risk Amount (Risk per Share × Quantity), and Risk:Reward Ratio using the Target price. All calculations must update in real-time without any button press.",
+        "summary": "Add a Strategy Performance Analytics section to AnalyticsPage.tsx. Group the user's trades by strategy name and compute per-strategy metrics: Total Trades, Win Rate %, Total P&L, Average R:R, and Average Risk. Display results in two ways: (1) a sortable table where clicking any column header sorts by that column, and (2) a bar chart (using Recharts) showing Total P&L per strategy. Automatically highlight the best-performing strategy (highest Total P&L) with a distinct visual indicator (e.g., a gold badge or highlighted row). If a trade has no strategy, group it under 'Untagged'.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/NewTradePage.tsx"
+          "frontend/src/pages/AnalyticsPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/NewTradePage.tsx"
+          "frontend/src/pages/AnalyticsPage.tsx"
         ]
       },
       {
         "id": "REQ-6",
-        "summary": "Add a Trade Conviction Meter to the New Trade form — a 1-to-5 star rating slider/selector that lets the trader record their confidence level ('conviction') before entering a trade. This conviction value must be saved as part of the trade record and displayed in the Trade Log table.",
+        "summary": "Add an Edit button to each trade card/row in TradeLogPage.tsx. Clicking Edit opens a modal pre-filled with the trade's current data. The modal must include editable fields for: Entry, Stop Loss, Target, P&L, Strategy (with autocomplete, see REQ-7), Emotion, and Notes. On submit, call the useUpdateTrade mutation. On success, close the modal and invalidate the trades and analytics queries so all data refreshes automatically.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/NewTradePage.tsx",
+          "frontend/src/components/EditTradeModal.tsx",
           "frontend/src/pages/TradeLogPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/NewTradePage.tsx",
+          "frontend/src/components/EditTradeModal.tsx",
           "frontend/src/pages/TradeLogPage.tsx"
         ]
       },
       {
         "id": "REQ-7",
-        "summary": "Add search and filter controls to the Trade Log page (TradeLogPage) allowing users to filter past trades by Strategy (setup/strategy tag) and by Mistake Type (e.g., FOMO, Early Entry, etc.). The filters should work alongside the existing filters and update the trade table in real-time.",
+        "summary": "Replace the plain strategy text input (in both NewTradePage.tsx and the Edit Trade modal) with a smart autocomplete input component. The component must: (1) fetch strategies via useGetStrategies; (2) filter suggestions case-insensitively as the user types; (3) support keyword/abbreviation matching so partial tokens match anywhere in the strategy name (e.g., typing '90' suggests '90 EMA Pullback', typing 'SR' suggests 'Support & Resistance'); (4) show a dropdown list of matching suggestions; (5) allow selection via mouse click or keyboard (arrow keys + Enter); (6) dismiss on Escape or outside click. The strategy value is still saved as free text.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/TradeLogPage.tsx"
+          "frontend/src/components/StrategyAutocomplete.tsx",
+          "frontend/src/pages/NewTradePage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/TradeLogPage.tsx"
+          "frontend/src/components/StrategyAutocomplete.tsx",
+          "frontend/src/pages/NewTradePage.tsx"
         ]
+      },
+      {
+        "id": "REQ-8",
+        "summary": "Add a 'Strategy Manager' section to SettingsPage.tsx. Display the user's saved strategies as a list with a Delete button next to each entry. Clicking Delete calls the useDeleteStrategy mutation and removes it from the list. Show an empty state message if no strategies are saved.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/SettingsPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/SettingsPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-9",
+        "summary": "Generate a migration module (backend/migration.mo) that adds the new 'strategies' stable data structure to the existing state without breaking existing trade records. The migration should be safe to run on upgrade and must preserve all existing trade data intact.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
@@ -112,26 +103,20 @@
     "backend/main.mo",
     "backend/migration.mo",
     "build-request.json",
-    "build-template/README.md",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/Layout.tsx",
+    "frontend/src/components/EditTradeModal.tsx",
+    "frontend/src/components/StrategyAutocomplete.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
     "frontend/src/pages/AnalyticsPage.tsx",
-    "frontend/src/pages/DashboardPage.tsx",
     "frontend/src/pages/NewTradePage.tsx",
-    "frontend/src/pages/RiskManagementPage.tsx",
     "frontend/src/pages/SettingsPage.tsx",
     "frontend/src/pages/TradeLogPage.tsx",
-    "frontend/tailwind.config.js",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

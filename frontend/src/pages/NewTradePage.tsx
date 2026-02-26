@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Star, Calculator, ChevronRight, Loader2 } from 'lucide-react';
+import { Star, Calculator, ChevronRight, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
 import { useAddTrade } from '../hooks/useQueries';
+import { MarketType } from '../backend';
+import { calcPnl, getPnLColorClass } from '../lib/tradeUtils';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { toast } from 'sonner';
+import StrategyAutocomplete from '../components/StrategyAutocomplete';
 
 const MISTAKE_OPTIONS = [
   'FOMO',
@@ -17,18 +21,13 @@ const MISTAKE_OPTIONS = [
 ];
 
 const EMOTION_OPTIONS = ['Calm', 'Excited', 'Fearful', 'Greedy', 'Confident', 'Anxious', 'Neutral'];
-const MARKET_TYPES = ['Equity', 'Futures', 'Options', 'Forex', 'Crypto', 'Commodity'];
-const SETUP_TYPES = [
-  'Breakout',
-  'Pullback',
-  'Reversal',
-  'Momentum',
-  'Gap Fill',
-  'Support/Resistance',
-  'Trend Follow',
-  'Scalp',
-  'Swing',
-  'Other',
+
+const MARKET_TYPE_OPTIONS: { label: string; value: MarketType }[] = [
+  { label: 'Stocks', value: MarketType.stocks },
+  { label: 'Futures', value: MarketType.future },
+  { label: 'Options', value: MarketType.option },
+  { label: 'Forex', value: MarketType.forex },
+  { label: 'Crypto', value: MarketType.cryptocurrency },
 ];
 
 function ConvictionMeter({
@@ -89,10 +88,16 @@ function RiskCalculator({
   target: number;
   quantity: number;
 }) {
-  const riskPerShare = entry > 0 && stopLoss > 0 ? Math.abs(entry - stopLoss) : 0;
-  const riskAmount = riskPerShare * (quantity || 0);
-  const rewardPerShare = entry > 0 && target > 0 ? Math.abs(target - entry) : 0;
-  const rrRatio = riskPerShare > 0 ? rewardPerShare / riskPerShare : 0;
+  const riskPerShare = entry > 0 && stopLoss > 0 ? entry - stopLoss : 0;
+  const riskAmount = entry > 0 && stopLoss > 0 && quantity > 0 ? riskPerShare * quantity : 0;
+  const denominator = entry > 0 && stopLoss > 0 ? entry - stopLoss : 0;
+  const rrRatio =
+    denominator !== 0 && target > 0 && entry > 0
+      ? (target - entry) / denominator
+      : 0;
+
+  const riskClass = riskAmount > 0 ? 'text-loss' : riskAmount < 0 ? 'text-profit' : 'text-muted-foreground';
+  const rrClass = rrRatio >= 2 ? 'text-profit' : rrRatio >= 1 ? 'text-[#F59E0B]' : 'text-loss';
 
   return (
     <div className="glass-card rounded-xl p-4 mt-3">
@@ -103,20 +108,20 @@ function RiskCalculator({
       <div className="grid grid-cols-3 gap-3">
         <div className="text-center p-2 rounded-lg bg-white/3 border border-white/5">
           <p className="text-xs text-muted-foreground mb-1">Risk/Share</p>
-          <p className={`text-base font-bold ${riskPerShare > 0 ? 'text-loss' : 'text-muted-foreground'}`}>
-            ₹{riskPerShare.toFixed(2)}
+          <p className={`text-base font-bold ${riskClass}`}>
+            {riskPerShare !== 0 ? `₹${Math.abs(riskPerShare).toFixed(2)}` : '—'}
           </p>
         </div>
         <div className="text-center p-2 rounded-lg bg-white/3 border border-white/5">
-          <p className="text-xs text-muted-foreground mb-1">Risk Amount</p>
-          <p className={`text-base font-bold ${riskAmount > 0 ? 'text-loss' : 'text-muted-foreground'}`}>
-            ₹{riskAmount.toFixed(2)}
+          <p className="text-xs text-muted-foreground mb-1">Total Risk</p>
+          <p className={`text-base font-bold ${riskClass}`}>
+            {riskAmount !== 0 ? `₹${Math.abs(riskAmount).toFixed(2)}` : '—'}
           </p>
         </div>
         <div className="text-center p-2 rounded-lg bg-white/3 border border-white/5">
           <p className="text-xs text-muted-foreground mb-1">R:R Ratio</p>
-          <p className={`text-base font-bold ${rrRatio >= 2 ? 'text-profit' : rrRatio >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
-            {rrRatio > 0 ? `1:${rrRatio.toFixed(2)}` : '—'}
+          <p className={`text-base font-bold ${rrClass}`}>
+            {rrRatio !== 0 ? `1:${rrRatio.toFixed(2)}` : '—'}
           </p>
         </div>
       </div>
@@ -127,115 +132,122 @@ function RiskCalculator({
 export default function NewTradePage() {
   const navigate = useNavigate();
   const addTrade = useAddTrade();
+  const { identity } = useInternetIdentity();
 
   const today = new Date().toISOString().split('T')[0];
 
-  const [form, setForm] = useState({
-    date: today,
-    stockName: '',
-    tradeType: 'Equity',
-    direction: 'Buy',
-    quantity: '',
-    entryPrice: '',
-    stopLoss: '',
-    target: '',
-    exitPrice: '',
-    isAPlusSetup: false,
-    setup: '',
-    emotion: 'Calm',
-    convictionLevel: 3,
-    followedPlan: true,
-    mistakeType: '',
-    notes: '',
-  });
+  const [date, setDate] = useState(today);
+  const [stockName, setStockName] = useState('');
+  const [marketType, setMarketType] = useState<MarketType>(MarketType.stocks);
+  const [direction, setDirection] = useState<'Buy' | 'Sell'>('Buy');
+  const [entryPrice, setEntryPrice] = useState('');
+  const [exitPrice, setExitPrice] = useState('');
+  const [stopLoss, setStopLoss] = useState('');
+  const [target, setTarget] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [isAPlusSetup, setIsAPlusSetup] = useState(false);
+  const [emotion, setEmotion] = useState('Calm');
+  const [convictionLevel, setConvictionLevel] = useState(3);
+  const [strategy, setStrategy] = useState('');
+  const [followedPlan, setFollowedPlan] = useState(true);
+  const [mistakeType, setMistakeType] = useState('');
+  const [notes, setNotes] = useState('');
 
-  const set = (key: string, value: any) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const entry = parseFloat(entryPrice) || 0;
+  const exit = parseFloat(exitPrice) || 0;
+  const sl = parseFloat(stopLoss) || 0;
+  const tgt = parseFloat(target) || 0;
+  const qty = parseInt(quantity) || 0;
 
-  const entryNum = parseFloat(form.entryPrice) || 0;
-  const slNum = parseFloat(form.stopLoss) || 0;
-  const targetNum = parseFloat(form.target) || 0;
-  const qtyNum = parseInt(form.quantity) || 0;
+  const livePnl = entry > 0 && exit > 0 && qty > 0 ? calcPnl(direction, entry, exit, qty) : null;
+  const pnlColorClass = livePnl !== null ? getPnLColorClass(livePnl) : 'text-muted-foreground';
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const inputClass =
+    'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-all';
+  const labelClass = 'block text-xs font-medium text-muted-foreground mb-1.5';
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.stockName.trim()) {
-      toast.error('Please enter a stock/symbol name');
+    if (!identity) {
+      toast.error('Please log in to add trades');
       return;
     }
-    if (!form.entryPrice || !form.exitPrice) {
-      toast.error('Entry and Exit prices are required');
+    if (!stockName.trim()) {
+      toast.error('Stock name is required');
+      return;
+    }
+    if (!entryPrice || !exitPrice || !quantity) {
+      toast.error('Entry, exit price and quantity are required');
+      return;
+    }
+    if (convictionLevel < 1 || convictionLevel > 5) {
+      toast.error('Conviction level must be between 1 and 5');
       return;
     }
 
-    const dateMs = new Date(form.date).getTime();
-    const dateNs = BigInt(dateMs) * 1_000_000n;
+    const dateMs = new Date(date).getTime();
+    const dateNs = BigInt(dateMs) * BigInt(1_000_000);
 
     try {
       await addTrade.mutateAsync({
         date: dateNs,
-        stockName: form.stockName.trim(),
-        tradeType: form.tradeType,
-        direction: form.direction,
-        entryPrice: parseFloat(form.entryPrice),
-        exitPrice: parseFloat(form.exitPrice),
-        stopLoss: parseFloat(form.stopLoss) || 0,
-        target: parseFloat(form.target) || 0,
-        quantity: BigInt(parseInt(form.quantity) || 1),
-        isAPlusSetup: form.isAPlusSetup,
-        emotion: form.emotion,
-        convictionLevel: BigInt(form.convictionLevel),
-        followedPlan: form.followedPlan,
-        mistakeType: form.mistakeType,
-        notes: form.notes,
+        stockName: stockName.trim(),
+        marketType,
+        direction,
+        entryPrice: entry,
+        exitPrice: exit,
+        stopLoss: sl,
+        target: tgt,
+        quantity: BigInt(qty),
+        isAPlusSetup,
+        emotion,
+        convictionLevel: BigInt(convictionLevel),
+        strategy: strategy.trim(),
+        followedPlan,
+        mistakeType,
+        notes: notes.trim(),
       });
       toast.success('Trade logged successfully!');
       navigate({ to: '/trade-log' });
     } catch (err: any) {
       toast.error(err?.message ?? 'Failed to log trade');
     }
-  };
-
-  const inputClass =
-    'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all';
-  const labelClass = 'block text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wider';
-  const sectionClass = 'glass-card rounded-2xl p-5 space-y-4';
+  }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
+    <div className="max-w-2xl mx-auto">
+      <div className="mb-6">
         <h1 className="font-display text-2xl font-bold text-foreground">Log New Trade</h1>
         <p className="text-muted-foreground text-sm mt-1">Record your trade details and psychology</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Trade Details */}
-        <div className={sectionClass}>
-          <h2 className="font-display font-semibold text-foreground flex items-center gap-2">
-            <ChevronRight size={16} className="text-primary" />
+        {/* Basic Info */}
+        <div className="glass-card rounded-2xl p-5 space-y-4">
+          <h2 className="font-display font-semibold text-foreground text-sm uppercase tracking-wide opacity-60">
             Trade Details
           </h2>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Date</label>
               <input
                 type="date"
-                value={form.date}
-                onChange={(e) => set('date', e.target.value)}
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 className={inputClass}
               />
             </div>
             <div>
               <label className={labelClass}>Market Type</label>
               <select
-                value={form.tradeType}
-                onChange={(e) => set('tradeType', e.target.value)}
+                value={marketType}
+                onChange={(e) => setMarketType(e.target.value as MarketType)}
                 className={inputClass}
               >
-                {MARKET_TYPES.map((t) => (
-                  <option key={t} value={t} className="bg-card">
-                    {t}
+                {MARKET_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value} className="bg-card">
+                    {opt.label}
                   </option>
                 ))}
               </select>
@@ -243,87 +255,61 @@ export default function NewTradePage() {
           </div>
 
           <div>
-            <label className={labelClass}>Symbol / Stock Name</label>
+            <label className={labelClass}>Stock / Symbol</label>
             <input
               type="text"
-              placeholder="e.g. RELIANCE, NIFTY50"
-              value={form.stockName}
-              onChange={(e) => set('stockName', e.target.value)}
+              value={stockName}
+              onChange={(e) => setStockName(e.target.value)}
+              placeholder="e.g. RELIANCE, NIFTY50, BTC"
               className={inputClass}
             />
           </div>
 
-          {/* Direction - Neon Buy/Sell */}
+          {/* Direction toggle */}
           <div>
             <label className={labelClass}>Direction</label>
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => set('direction', 'Buy')}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 btn-buy ${
-                  form.direction === 'Buy' ? 'selected' : ''
+                onClick={() => setDirection('Buy')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  direction === 'Buy'
+                    ? 'btn-buy'
+                    : 'bg-white/5 border border-white/10 text-muted-foreground hover:bg-white/8'
                 }`}
               >
-                ▲ BUY / LONG
+                <TrendingUp size={16} /> Buy / Long
               </button>
               <button
                 type="button"
-                onClick={() => set('direction', 'Sell')}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 btn-sell ${
-                  form.direction === 'Sell' ? 'selected' : ''
+                onClick={() => setDirection('Sell')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  direction === 'Sell'
+                    ? 'btn-sell'
+                    : 'bg-white/5 border border-white/10 text-muted-foreground hover:bg-white/8'
                 }`}
               >
-                ▼ SELL / SHORT
+                <TrendingDown size={16} /> Sell / Short
               </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Quantity</label>
-              <input
-                type="number"
-                placeholder="100"
-                value={form.quantity}
-                onChange={(e) => set('quantity', e.target.value)}
-                className={inputClass}
-                min="1"
-              />
-            </div>
-            <div>
-              <label className={labelClass}>Setup / Strategy</label>
-              <select
-                value={form.setup}
-                onChange={(e) => set('setup', e.target.value)}
-                className={inputClass}
-              >
-                <option value="" className="bg-card">Select setup…</option>
-                {SETUP_TYPES.map((s) => (
-                  <option key={s} value={s} className="bg-card">
-                    {s}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
         </div>
 
         {/* Price Details */}
-        <div className={sectionClass}>
-          <h2 className="font-display font-semibold text-foreground flex items-center gap-2">
-            <ChevronRight size={16} className="text-primary" />
+        <div className="glass-card rounded-2xl p-5 space-y-4">
+          <h2 className="font-display font-semibold text-foreground text-sm uppercase tracking-wide opacity-60">
             Price Details
           </h2>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Entry Price</label>
               <input
                 type="number"
-                step="0.01"
+                step="any"
+                value={entryPrice}
+                onChange={(e) => setEntryPrice(e.target.value)}
                 placeholder="0.00"
-                value={form.entryPrice}
-                onChange={(e) => set('entryPrice', e.target.value)}
                 className={inputClass}
               />
             </div>
@@ -331,10 +317,10 @@ export default function NewTradePage() {
               <label className={labelClass}>Exit Price</label>
               <input
                 type="number"
-                step="0.01"
+                step="any"
+                value={exitPrice}
+                onChange={(e) => setExitPrice(e.target.value)}
                 placeholder="0.00"
-                value={form.exitPrice}
-                onChange={(e) => set('exitPrice', e.target.value)}
                 className={inputClass}
               />
             </div>
@@ -342,10 +328,10 @@ export default function NewTradePage() {
               <label className={labelClass}>Stop Loss</label>
               <input
                 type="number"
-                step="0.01"
+                step="any"
+                value={stopLoss}
+                onChange={(e) => setStopLoss(e.target.value)}
                 placeholder="0.00"
-                value={form.stopLoss}
-                onChange={(e) => set('stopLoss', e.target.value)}
                 className={inputClass}
               />
             </div>
@@ -353,110 +339,119 @@ export default function NewTradePage() {
               <label className={labelClass}>Target</label>
               <input
                 type="number"
-                step="0.01"
+                step="any"
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
                 placeholder="0.00"
-                value={form.target}
-                onChange={(e) => set('target', e.target.value)}
                 className={inputClass}
               />
             </div>
+            <div>
+              <label className={labelClass}>Quantity</label>
+              <input
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder="1"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Live P&amp;L</label>
+              <div className={`${inputClass} flex items-center ${pnlColorClass} font-bold`}>
+                {livePnl !== null
+                  ? `${livePnl > 0 ? '+' : ''}₹${Math.abs(livePnl).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : '—'}
+              </div>
+            </div>
           </div>
 
-          {/* Live Risk Calculator */}
-          <RiskCalculator
-            entry={entryNum}
-            stopLoss={slNum}
-            target={targetNum}
-            quantity={qtyNum}
-          />
+          {/* Risk Calculator */}
+          {(entry > 0 || sl > 0 || tgt > 0) && (
+            <RiskCalculator entry={entry} stopLoss={sl} target={tgt} quantity={qty} />
+          )}
         </div>
 
         {/* Psychology */}
-        <div className={sectionClass}>
-          <h2 className="font-display font-semibold text-foreground flex items-center gap-2">
-            <ChevronRight size={16} className="text-primary" />
-            Psychology
+        <div className="glass-card rounded-2xl p-5 space-y-4">
+          <h2 className="font-display font-semibold text-foreground text-sm uppercase tracking-wide opacity-60">
+            Psychology &amp; Setup
           </h2>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Emotion</label>
               <select
-                value={form.emotion}
-                onChange={(e) => set('emotion', e.target.value)}
+                value={emotion}
+                onChange={(e) => setEmotion(e.target.value)}
                 className={inputClass}
               >
-                {EMOTION_OPTIONS.map((e) => (
-                  <option key={e} value={e} className="bg-card">
-                    {e}
-                  </option>
+                {EMOTION_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt} className="bg-card">{opt}</option>
                 ))}
               </select>
             </div>
-            <div className="flex items-center gap-3 pt-5">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.followedPlan}
-                  onChange={(e) => set('followedPlan', e.target.checked)}
-                  className="w-4 h-4 rounded accent-primary"
-                />
-                <span className="text-sm text-foreground">Followed Plan</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.isAPlusSetup}
-                  onChange={(e) => set('isAPlusSetup', e.target.checked)}
-                  className="w-4 h-4 rounded accent-primary"
-                />
-                <span className="text-sm text-foreground">A+ Setup</span>
-              </label>
+            <div>
+              <label className={labelClass}>Mistake Type</label>
+              <select
+                value={mistakeType}
+                onChange={(e) => setMistakeType(e.target.value)}
+                className={inputClass}
+              >
+                <option value="" className="bg-card">None</option>
+                {MISTAKE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt} className="bg-card">{opt}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Conviction Meter */}
+          {/* Strategy with autocomplete */}
           <div>
-            <label className={labelClass}>Trade Conviction</label>
-            <ConvictionMeter
-              value={form.convictionLevel}
-              onChange={(v) => set('convictionLevel', v)}
+            <label className={labelClass}>Strategy</label>
+            <StrategyAutocomplete
+              value={strategy}
+              onChange={setStrategy}
+              placeholder="e.g. 90 EMA Pullback, Support & Resistance"
             />
           </div>
 
-          {/* Mistakes */}
           <div>
-            <label className={labelClass}>Mistake Type</label>
-            <div className="flex flex-wrap gap-2">
-              {MISTAKE_OPTIONS.map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => set('mistakeType', form.mistakeType === m ? '' : m)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
-                    form.mistakeType === m
-                      ? 'bg-loss/15 border-loss/50 text-loss'
-                      : 'bg-white/3 border-white/10 text-muted-foreground hover:border-white/20 hover:text-foreground'
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
+            <label className={labelClass}>Conviction Level</label>
+            <ConvictionMeter value={convictionLevel} onChange={setConvictionLevel} />
+          </div>
+
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={followedPlan}
+                onChange={(e) => setFollowedPlan(e.target.checked)}
+                className="w-4 h-4 rounded border-white/20 bg-white/5 accent-primary"
+              />
+              <span className="text-sm text-foreground">Followed Plan</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isAPlusSetup}
+                onChange={(e) => setIsAPlusSetup(e.target.checked)}
+                className="w-4 h-4 rounded border-white/20 bg-white/5 accent-primary"
+              />
+              <span className="text-sm text-foreground">A+ Setup ⭐</span>
+            </label>
           </div>
         </div>
 
         {/* Notes */}
-        <div className={sectionClass}>
-          <h2 className="font-display font-semibold text-foreground flex items-center gap-2">
-            <ChevronRight size={16} className="text-primary" />
-            Notes
-          </h2>
+        <div className="glass-card rounded-2xl p-5">
+          <label className={labelClass}>Notes</label>
           <textarea
-            placeholder="Trade rationale, observations, lessons learned…"
-            value={form.notes}
-            onChange={(e) => set('notes', e.target.value)}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
             rows={4}
+            placeholder="Trade rationale, observations, lessons learned…"
             className={`${inputClass} resize-none`}
           />
         </div>
@@ -464,16 +459,21 @@ export default function NewTradePage() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={addTrade.isPending}
-          className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-neon-orange flex items-center justify-center gap-2"
+          disabled={addTrade.isPending || !identity}
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {addTrade.isPending ? (
             <>
-              <Loader2 size={16} className="animate-spin" />
+              <Loader2 size={18} className="animate-spin" />
               Logging Trade…
             </>
+          ) : !identity ? (
+            'Please Log In'
           ) : (
-            'Log Trade'
+            <>
+              Log Trade
+              <ChevronRight size={18} />
+            </>
           )}
         </button>
       </form>

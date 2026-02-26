@@ -8,6 +8,13 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const MarketType = IDL.Variant({
+  'cryptocurrency' : IDL.Null,
+  'forex' : IDL.Null,
+  'stocks' : IDL.Null,
+  'option' : IDL.Null,
+  'future' : IDL.Null,
+});
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -16,11 +23,12 @@ export const UserRole = IDL.Variant({
 export const Trade = IDL.Record({
   'id' : IDL.Nat,
   'pnl' : IDL.Float64,
+  'marketType' : MarketType,
   'direction' : IDL.Text,
   'stockName' : IDL.Text,
-  'tradeType' : IDL.Text,
   'emotion' : IDL.Text,
   'date' : IDL.Int,
+  'strategy' : IDL.Text,
   'mistakeType' : IDL.Text,
   'followedPlan' : IDL.Bool,
   'target' : IDL.Float64,
@@ -39,6 +47,15 @@ export const Backup = IDL.Record({
   'dailyMaxLoss' : IDL.Float64,
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
+export const UpdateTradeRecord = IDL.Record({
+  'pnl' : IDL.Float64,
+  'emotion' : IDL.Text,
+  'strategy' : IDL.Text,
+  'target' : IDL.Float64,
+  'stopLoss' : IDL.Float64,
+  'notes' : IDL.Text,
+  'entryPrice' : IDL.Float64,
+});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -46,7 +63,7 @@ export const idlService = IDL.Service({
       [
         IDL.Int,
         IDL.Text,
-        IDL.Text,
+        MarketType,
         IDL.Text,
         IDL.Float64,
         IDL.Float64,
@@ -56,6 +73,7 @@ export const idlService = IDL.Service({
         IDL.Bool,
         IDL.Text,
         IDL.Nat,
+        IDL.Text,
         IDL.Bool,
         IDL.Text,
         IDL.Text,
@@ -65,6 +83,7 @@ export const idlService = IDL.Service({
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'calculatePnlQuery' : IDL.Func([Trade], [IDL.Float64], ['query']),
+  'deleteStrategy' : IDL.Func([IDL.Text], [], []),
   'deleteTrade' : IDL.Func([IDL.Nat], [], []),
   'exportBackup' : IDL.Func([], [Backup], ['query']),
   'getAccountSize' : IDL.Func([], [IDL.Float64], ['query']),
@@ -83,9 +102,15 @@ export const idlService = IDL.Service({
       ],
       ['query'],
     ),
+  'getStrategies' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Int))],
+      ['query'],
+    ),
   'getTotalTradesCount' : IDL.Func([], [IDL.Nat], ['query']),
   'getTradeById' : IDL.Func([IDL.Nat], [IDL.Opt(Trade)], ['query']),
   'getTrades' : IDL.Func([], [IDL.Vec(Trade)], ['query']),
+  'getTradesByStrategy' : IDL.Func([IDL.Text], [IDL.Vec(Trade)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -94,35 +119,22 @@ export const idlService = IDL.Service({
   'importBackup' : IDL.Func([Backup], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'saveStrategy' : IDL.Func([IDL.Text], [], []),
   'setAccountSize' : IDL.Func([IDL.Float64], [], []),
   'setDailyMaxLoss' : IDL.Func([IDL.Float64], [], []),
-  'updateTrade' : IDL.Func(
-      [
-        IDL.Nat,
-        IDL.Int,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Float64,
-        IDL.Float64,
-        IDL.Float64,
-        IDL.Float64,
-        IDL.Nat,
-        IDL.Bool,
-        IDL.Text,
-        IDL.Nat,
-        IDL.Bool,
-        IDL.Text,
-        IDL.Text,
-      ],
-      [],
-      [],
-    ),
+  'updateTrade' : IDL.Func([IDL.Nat, UpdateTradeRecord], [IDL.Opt(Trade)], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const MarketType = IDL.Variant({
+    'cryptocurrency' : IDL.Null,
+    'forex' : IDL.Null,
+    'stocks' : IDL.Null,
+    'option' : IDL.Null,
+    'future' : IDL.Null,
+  });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
@@ -131,11 +143,12 @@ export const idlFactory = ({ IDL }) => {
   const Trade = IDL.Record({
     'id' : IDL.Nat,
     'pnl' : IDL.Float64,
+    'marketType' : MarketType,
     'direction' : IDL.Text,
     'stockName' : IDL.Text,
-    'tradeType' : IDL.Text,
     'emotion' : IDL.Text,
     'date' : IDL.Int,
+    'strategy' : IDL.Text,
     'mistakeType' : IDL.Text,
     'followedPlan' : IDL.Bool,
     'target' : IDL.Float64,
@@ -154,6 +167,15 @@ export const idlFactory = ({ IDL }) => {
     'dailyMaxLoss' : IDL.Float64,
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
+  const UpdateTradeRecord = IDL.Record({
+    'pnl' : IDL.Float64,
+    'emotion' : IDL.Text,
+    'strategy' : IDL.Text,
+    'target' : IDL.Float64,
+    'stopLoss' : IDL.Float64,
+    'notes' : IDL.Text,
+    'entryPrice' : IDL.Float64,
+  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -161,7 +183,7 @@ export const idlFactory = ({ IDL }) => {
         [
           IDL.Int,
           IDL.Text,
-          IDL.Text,
+          MarketType,
           IDL.Text,
           IDL.Float64,
           IDL.Float64,
@@ -171,6 +193,7 @@ export const idlFactory = ({ IDL }) => {
           IDL.Bool,
           IDL.Text,
           IDL.Nat,
+          IDL.Text,
           IDL.Bool,
           IDL.Text,
           IDL.Text,
@@ -180,6 +203,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'calculatePnlQuery' : IDL.Func([Trade], [IDL.Float64], ['query']),
+    'deleteStrategy' : IDL.Func([IDL.Text], [], []),
     'deleteTrade' : IDL.Func([IDL.Nat], [], []),
     'exportBackup' : IDL.Func([], [Backup], ['query']),
     'getAccountSize' : IDL.Func([], [IDL.Float64], ['query']),
@@ -198,9 +222,15 @@ export const idlFactory = ({ IDL }) => {
         ],
         ['query'],
       ),
+    'getStrategies' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Int))],
+        ['query'],
+      ),
     'getTotalTradesCount' : IDL.Func([], [IDL.Nat], ['query']),
     'getTradeById' : IDL.Func([IDL.Nat], [IDL.Opt(Trade)], ['query']),
     'getTrades' : IDL.Func([], [IDL.Vec(Trade)], ['query']),
+    'getTradesByStrategy' : IDL.Func([IDL.Text], [IDL.Vec(Trade)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
@@ -209,28 +239,12 @@ export const idlFactory = ({ IDL }) => {
     'importBackup' : IDL.Func([Backup], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'saveStrategy' : IDL.Func([IDL.Text], [], []),
     'setAccountSize' : IDL.Func([IDL.Float64], [], []),
     'setDailyMaxLoss' : IDL.Func([IDL.Float64], [], []),
     'updateTrade' : IDL.Func(
-        [
-          IDL.Nat,
-          IDL.Int,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Float64,
-          IDL.Float64,
-          IDL.Float64,
-          IDL.Float64,
-          IDL.Nat,
-          IDL.Bool,
-          IDL.Text,
-          IDL.Nat,
-          IDL.Bool,
-          IDL.Text,
-          IDL.Text,
-        ],
-        [],
+        [IDL.Nat, UpdateTradeRecord],
+        [IDL.Opt(Trade)],
         [],
       ),
   });

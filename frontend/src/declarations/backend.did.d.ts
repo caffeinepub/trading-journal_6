@@ -15,14 +15,20 @@ export interface Backup {
   'accountSize' : number,
   'dailyMaxLoss' : number,
 }
+export type MarketType = { 'cryptocurrency' : null } |
+  { 'forex' : null } |
+  { 'stocks' : null } |
+  { 'option' : null } |
+  { 'future' : null };
 export interface Trade {
   'id' : bigint,
   'pnl' : number,
+  'marketType' : MarketType,
   'direction' : string,
   'stockName' : string,
-  'tradeType' : string,
   'emotion' : string,
   'date' : bigint,
+  'strategy' : string,
   'mistakeType' : string,
   'followedPlan' : boolean,
   'target' : number,
@@ -35,6 +41,15 @@ export interface Trade {
   'exitPrice' : number,
   'riskRewardRatio' : number,
 }
+export interface UpdateTradeRecord {
+  'pnl' : number,
+  'emotion' : string,
+  'strategy' : string,
+  'target' : number,
+  'stopLoss' : number,
+  'notes' : string,
+  'entryPrice' : number,
+}
 export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -45,7 +60,7 @@ export interface _SERVICE {
     [
       bigint,
       string,
-      string,
+      MarketType,
       string,
       number,
       number,
@@ -55,6 +70,7 @@ export interface _SERVICE {
       boolean,
       string,
       bigint,
+      string,
       boolean,
       string,
       string,
@@ -63,6 +79,7 @@ export interface _SERVICE {
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'calculatePnlQuery' : ActorMethod<[Trade], number>,
+  'deleteStrategy' : ActorMethod<[string], undefined>,
   'deleteTrade' : ActorMethod<[bigint], undefined>,
   'exportBackup' : ActorMethod<[], Backup>,
   'getAccountSize' : ActorMethod<[], number>,
@@ -74,36 +91,19 @@ export interface _SERVICE {
     [],
     { 'totalPnl' : number, 'accountSize' : number, 'dailyMaxLoss' : number }
   >,
+  'getStrategies' : ActorMethod<[], Array<[string, bigint]>>,
   'getTotalTradesCount' : ActorMethod<[], bigint>,
   'getTradeById' : ActorMethod<[bigint], [] | [Trade]>,
   'getTrades' : ActorMethod<[], Array<Trade>>,
+  'getTradesByStrategy' : ActorMethod<[string], Array<Trade>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'importBackup' : ActorMethod<[Backup], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'saveStrategy' : ActorMethod<[string], undefined>,
   'setAccountSize' : ActorMethod<[number], undefined>,
   'setDailyMaxLoss' : ActorMethod<[number], undefined>,
-  'updateTrade' : ActorMethod<
-    [
-      bigint,
-      bigint,
-      string,
-      string,
-      string,
-      number,
-      number,
-      number,
-      number,
-      bigint,
-      boolean,
-      string,
-      bigint,
-      boolean,
-      string,
-      string,
-    ],
-    undefined
-  >,
+  'updateTrade' : ActorMethod<[bigint, UpdateTradeRecord], [] | [Trade]>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

@@ -1,16 +1,17 @@
 # Specification
 
 ## Summary
-**Goal:** Upgrade Trading Journal Pro with glassmorphism UI styling, interactive P&L chart, live risk-reward calculator, conviction meter, and enhanced trade log filters.
+**Goal:** Add strategy analytics, trade editing, and smart strategy autocomplete to EmpireTradeX.
 
 **Planned changes:**
-- Apply glassmorphism styling (semi-transparent backgrounds, backdrop-blur, subtle border highlights) to all card components, modals, and sidebar panels across all pages, preserving the deep navy dark theme
-- Restyle Buy/Sell direction buttons and badges to use soft neon borders (green for Buy, red for Sell) with glowing box-shadow on hover/click instead of solid fills
-- Increase sidebar navigation icon sizes to at least 22–24px using minimalistic lucide-react icons alongside each nav label
-- Add an interactive P&L line/area chart at the top of the Dashboard showing net profit/loss for the last 7 calendar days, with green/red visual distinction for positive/negative days
-- Add a live Risk-Reward Calculator block in the New Trade form that auto-calculates Risk per Share, Risk Amount, and Risk:Reward Ratio as the user types Entry Price, Stop Loss, Target, and Quantity
-- Add a 1–5 star Trade Conviction Meter selector in the New Trade form (Psychology section), save the conviction value to the trade record, and display it in the Trade Log table
-- Extend the backend trade data type with an optional conviction field
-- Add Strategy and Mistake Type dropdown filters to the Trade Log filter bar that compose with existing filters and update the trade list in real time
+- Add a `strategies` collection to the backend with `saveStrategy`, `getStrategies`, and `deleteStrategy` functions, all gated behind caller authentication
+- Add an `updateTrade` backend function that allows the trade owner to update entry, stop loss, target, P&L, strategy, emotion, and notes fields with an `updatedAt` timestamp
+- Automatically persist a strategy name to the strategies collection when a new trade is created with a non-empty strategy field
+- Add React Query hooks: `useGetStrategies`, `useSaveStrategy`, `useDeleteStrategy`, and `useUpdateTrade` (invalidates trades cache on success)
+- Add a "Strategy Performance" section to the Analytics page showing per-strategy metrics (Total Trades, Win Rate %, Total P&L, Avg R:R, Avg Risk) in a sortable table and a Recharts bar chart, with the best-performing strategy visually highlighted; trades without a strategy grouped as "Untagged"
+- Add an Edit button to each trade card in the Trade Log page that opens a pre-filled modal for editing all seven fields; on success, refreshes trade list and analytics
+- Replace the plain strategy text input in NewTradePage and the Edit Trade modal with a smart autocomplete component that filters suggestions case-insensitively, supports abbreviation/substring matching, and allows keyboard navigation
+- Add a "Strategy Manager" section to the Settings page listing saved strategies with a Delete button for each, and an empty-state message when none exist
+- Add a backend migration module that introduces the strategies stable data structure on canister upgrade without affecting existing trade records
 
-**User-visible outcome:** Users see a premium frosted-glass interface with glowing Buy/Sell indicators, can view a 7-day P&L chart on the dashboard, get instant risk-reward feedback while entering trades, record their trade conviction with a star rating, and filter their trade log by strategy or mistake type.
+**User-visible outcome:** Users can edit existing trades, view strategy-grouped performance analytics with charts, use smart autocomplete when entering strategies, and manage their saved strategies from the settings page.

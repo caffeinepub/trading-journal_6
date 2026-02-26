@@ -1,20 +1,53 @@
 import type { Trade } from '../backend';
 
 export function calcRiskPerTrade(entryPrice: number, stopLoss: number, quantity: number): number {
-  return Math.abs(entryPrice - stopLoss) * quantity;
+  // Risk Amount = (Entry Price - Stop Loss) * Quantity
+  return (entryPrice - stopLoss) * quantity;
 }
 
 export function calcRiskRewardRatio(entryPrice: number, stopLoss: number, target: number): number {
-  const risk = Math.abs(entryPrice - stopLoss);
+  // R:R = (Target - Entry) / (Entry - Stop Loss)
+  const risk = entryPrice - stopLoss;
   if (risk === 0) return 0;
-  return Math.abs(target - entryPrice) / risk;
+  return (target - entryPrice) / risk;
 }
 
+/**
+ * Direction-aware P&L calculation:
+ * Buy/Long:  (Exit - Entry) * Quantity
+ * Sell/Short: (Entry - Exit) * Quantity
+ */
 export function calcPnl(direction: string, entryPrice: number, exitPrice: number, quantity: number): number {
-  if (direction === 'Buy') {
+  const dir = direction.toLowerCase();
+  if (dir === 'buy' || dir === 'long') {
     return (exitPrice - entryPrice) * quantity;
   } else {
+    // sell / short
     return (entryPrice - exitPrice) * quantity;
+  }
+}
+
+/**
+ * Returns a Tailwind text color class based on P&L value.
+ * Positive → Emerald Green, Negative → Crimson Red, Zero → muted
+ */
+export function getPnLColorClass(pnl: number): string {
+  if (pnl > 0) return 'text-profit';
+  if (pnl < 0) return 'text-loss';
+  return 'text-muted-foreground';
+}
+
+/**
+ * Maps backend MarketType enum value to a user-friendly display label.
+ */
+export function formatMarketType(marketType: string): string {
+  switch (marketType) {
+    case 'stocks': return 'Stocks';
+    case 'future': return 'Futures';
+    case 'option': return 'Options';
+    case 'forex': return 'Forex';
+    case 'cryptocurrency': return 'Crypto';
+    default: return marketType;
   }
 }
 
@@ -125,10 +158,9 @@ export function getMonthlyStats(trades: Trade[]) {
 
 export function exportToCsv(trades: Trade[]) {
   const headers = [
-    'Date', 'Stock', 'Type', 'Direction', 'Entry Price', 'Exit Price',
+    'Date', 'Stock', 'Market Type', 'Direction', 'Entry Price', 'Exit Price',
     'Stop Loss', 'Target', 'Quantity', 'Risk/Trade', 'RR Ratio', 'P&L',
-    'Entry Type', 'Timeframe', 'Session', 'A+ Setup',
-    'Emotion', 'Followed Plan', 'Mistake Type', 'Notes'
+    'A+ Setup', 'Emotion', 'Followed Plan', 'Mistake Type', 'Notes'
   ];
 
   const rows = trades.map(t => {
@@ -137,7 +169,7 @@ export function exportToCsv(trades: Trade[]) {
     return [
       dateStr,
       t.stockName,
-      t.tradeType,
+      formatMarketType(String(t.marketType)),
       t.direction,
       t.entryPrice.toFixed(2),
       t.exitPrice.toFixed(2),
@@ -147,9 +179,6 @@ export function exportToCsv(trades: Trade[]) {
       risk.toFixed(2),
       t.riskRewardRatio.toFixed(2),
       t.pnl.toFixed(2),
-      '', // entryType not in backend
-      '', // timeframe not in backend
-      '', // session not in backend
       t.isAPlusSetup ? 'Yes' : 'No',
       t.emotion,
       t.followedPlan ? 'Yes' : 'No',

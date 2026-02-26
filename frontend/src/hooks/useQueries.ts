@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { Trade, Backup } from '../backend';
+import { Trade, Backup, MarketType, UpdateTradeRecord } from '../backend';
 
 export function useGetTrades() {
   const { actor, isFetching } = useActor();
@@ -29,7 +29,7 @@ export function useGetTradeById(id: bigint) {
 interface AddTradeParams {
   date: bigint;
   stockName: string;
-  tradeType: string;
+  marketType: MarketType;
   direction: string;
   entryPrice: number;
   exitPrice: number;
@@ -39,6 +39,7 @@ interface AddTradeParams {
   isAPlusSetup: boolean;
   emotion: string;
   convictionLevel: bigint;
+  strategy: string;
   followedPlan: boolean;
   mistakeType: string;
   notes: string;
@@ -53,7 +54,7 @@ export function useAddTrade() {
       return actor.addTrade(
         params.date,
         params.stockName,
-        params.tradeType,
+        params.marketType,
         params.direction,
         params.entryPrice,
         params.exitPrice,
@@ -63,6 +64,7 @@ export function useAddTrade() {
         params.isAPlusSetup,
         params.emotion,
         params.convictionLevel,
+        params.strategy,
         params.followedPlan,
         params.mistakeType,
         params.notes,
@@ -70,12 +72,14 @@ export function useAddTrade() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trades'] });
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
     },
   });
 }
 
-interface UpdateTradeParams extends AddTradeParams {
+interface UpdateTradeParams {
   id: bigint;
+  update: UpdateTradeRecord;
 }
 
 export function useUpdateTrade() {
@@ -84,27 +88,12 @@ export function useUpdateTrade() {
   return useMutation({
     mutationFn: async (params: UpdateTradeParams) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateTrade(
-        params.id,
-        params.date,
-        params.stockName,
-        params.tradeType,
-        params.direction,
-        params.entryPrice,
-        params.exitPrice,
-        params.stopLoss,
-        params.target,
-        params.quantity,
-        params.isAPlusSetup,
-        params.emotion,
-        params.convictionLevel,
-        params.followedPlan,
-        params.mistakeType,
-        params.notes,
-      );
+      return actor.updateTrade(params.id, params.update);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trades'] });
+      queryClient.invalidateQueries({ queryKey: ['riskStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
     },
   });
 }
@@ -119,6 +108,46 @@ export function useDeleteTrade() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trades'] });
+    },
+  });
+}
+
+export function useGetStrategies() {
+  const { actor, isFetching } = useActor();
+  return useQuery<Array<[string, bigint]>>({
+    queryKey: ['strategies'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getStrategies();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useSaveStrategy() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (name: string) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.saveStrategy(name);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+    },
+  });
+}
+
+export function useDeleteStrategy() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (name: string) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.deleteStrategy(name);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
     },
   });
 }

@@ -1,156 +1,207 @@
 {
   "kind": "build_request",
-  "title": "Glassmorphism UI Upgrade + P&L Chart, Risk Calculator, Conviction Meter & Trade Filters",
-  "projectName": "Trading Journal Pro",
+  "title": "Strategy Analytics, Edit Trade & Smart Strategy Autocomplete",
+  "projectName": "EmpireTradeX",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Apply glassmorphism styling across all card components, modals, and sidebar panels: use semi-transparent backgrounds (e.g., rgba white/black with 10–15% opacity), backdrop-blur, and subtle border highlights to create a premium frosted-glass look consistent with the existing deep navy dark theme.",
-      "target": "frontend",
+      "text": "Extend the backend actor to support a 'strategies' collection per user. Add the following functions: (1) saveStrategy(name: Text) – stores a strategy name under the caller's user ID if it doesn't already exist; (2) getStrategies() – returns all strategy names for the caller; (3) deleteStrategy(name: Text) – removes a strategy by name for the caller. Strategy records must be linked to user principal and include a createdAt timestamp.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-6"
         ],
         "quotes": [
-          "Glassmorphism Effect: Background ko halka sa blur aur transparent rakhein (jaise Apple ka interface hota hai). Isse dark mode aur bhi premium lagega."
+          "Create a separate table/collection called 'strategies'",
+          "Link strategies to user_id",
+          "Add ability to delete unused strategies from settings"
         ]
       },
       "acceptanceCriteria": [
-        "All stat cards, form containers, and modal panels use backdrop-blur with a semi-transparent background.",
-        "The effect is consistent across Dashboard, New Trade, Trade Log, Analytics, and Risk Management pages.",
-        "The dark navy theme is preserved and the glassmorphism effect enhances rather than obscures content."
+        "saveStrategy stores a new strategy name only if it does not already exist for that user",
+        "getStrategies returns only the calling user's strategies",
+        "deleteStrategy removes the specified strategy for the calling user",
+        "All strategy operations are gated behind authentication (caller principal check)"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Restyle the Buy and Sell direction buttons/badges throughout the app (New Trade form, Trade Log table, etc.) to use soft neon borders instead of solid fills — green neon border for Buy and red neon border for Sell — with a glowing box-shadow effect that activates on hover and click.",
-      "target": "frontend",
+      "text": "Add an updateTrade function to the backend actor that accepts a trade ID and an update record with fields: entry (Float), stopLoss (Float), target (Float), pnl (Float), strategy (Text), emotion (Text), notes (Text). The function must update the specified trade for the authenticated caller, set an updatedAt timestamp, and return the updated trade. Only the trade owner may update their own trades.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-6"
         ],
         "quotes": [
-          "Color-Coded Status: 'Buy' aur 'Sell' buttons ko solid colors ki jagah soft neon borders (Green for Buy, Red for Sell) dein jo click karne par glow karein."
+          "Allow updating: Entry, Stop Loss, Target, P&L, Strategy, Emotion, Notes",
+          "Maintain updated_at timestamp"
         ]
       },
       "acceptanceCriteria": [
-        "Buy buttons/badges have a soft green neon border with no solid fill background.",
-        "Sell buttons/badges have a soft red neon border with no solid fill background.",
-        "On hover and click, a glowing box-shadow animation activates for the respective color.",
-        "The styling is applied consistently across all pages where Buy/Sell direction is shown."
+        "updateTrade rejects calls from users who do not own the specified trade",
+        "All specified fields are updated and persisted",
+        "The updatedAt timestamp is set to the current time on every update",
+        "The updated trade is returned on success"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Increase the size of sidebar navigation icons and switch to a minimalistic icon set. Each navigation item (Dashboard, New Trade, Trade History/Trade Log, Analytics, Risk Management, Settings) must display a larger, clean icon alongside the label text.",
-      "target": "frontend",
+      "text": "When a trade is saved (new trade creation) and the strategy field is non-empty, automatically call saveStrategy with the strategy name so it is stored in the strategies collection. This must happen server-side inside the trade creation handler.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-6"
         ],
         "quotes": [
-          "Sidebar Icons: Jo text aapne likha hai (Dashboard, Trade Log), unke saath matching icons ko thoda bada aur minimalistic rakhein."
+          "Whenever a new strategy is typed and saved in a trade, automatically store it in the strategies table (if not already exists)"
         ]
       },
       "acceptanceCriteria": [
-        "Each sidebar nav item shows a recognizable minimalistic icon (e.g., from lucide-react) alongside its text label.",
-        "Icons are visually larger than default (at least 22–24px).",
-        "Icons and labels are vertically aligned and do not overflow the sidebar."
+        "Creating a trade with a new strategy name automatically persists that strategy in the strategies collection",
+        "Creating a trade with an already-existing strategy does not create a duplicate",
+        "Creating a trade without a strategy name does not store an empty strategy"
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Add an interactive P&L line chart at the top of the Dashboard page showing the net profit/loss for the last 7 calendar days. The chart should use trade data from the existing store, show day labels on the X-axis and P&L values on the Y-axis, and visually distinguish positive vs negative days (green vs red line/fill).",
+      "text": "Add React Query hooks in useQueries.ts for the three new backend functions: useGetStrategies (fetches all strategies for current user), useSaveStrategy (mutation), and useDeleteStrategy (mutation). Also add an useUpdateTrade mutation hook that calls the backend updateTrade function and invalidates the trades query on success.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-6"
         ],
         "quotes": [
-          "Interactive P&L Chart: Screen ke upar ek chota sa line graph jo aapke pichle 7 dino ka profit/loss dikhaye."
+          "Update analytics in real-time after trade edit"
         ]
       },
       "acceptanceCriteria": [
-        "A line/area chart appears at the top of DashboardPage above the stat cards.",
-        "The chart displays the last 7 days with correct P&L aggregated from logged trades.",
-        "Days with net profit are rendered in green and days with net loss in red, or the line uses green/red fill zones.",
-        "The chart is responsive and fits within the existing layout without overflow."
+        "useGetStrategies returns the user's strategy list and is refetched when a strategy is added or deleted",
+        "useUpdateTrade mutation invalidates the trades cache so analytics re-render automatically after an edit",
+        "All hooks pass the authenticated actor from useActor"
       ]
     },
     {
       "id": "REQ-5",
-      "text": "Add a Live Risk-Reward Calculator section in the New Trade form (NewTradePage). As the user types Entry Price and Stop Loss values, automatically calculate and display: Risk per Share (|Entry - Stop Loss|), Risk Amount (Risk per Share × Quantity), and Risk:Reward Ratio using the Target price. All calculations must update in real-time without any button press.",
+      "text": "Add a Strategy Performance Analytics section to AnalyticsPage.tsx. Group the user's trades by strategy name and compute per-strategy metrics: Total Trades, Win Rate %, Total P&L, Average R:R, and Average Risk. Display results in two ways: (1) a sortable table where clicking any column header sorts by that column, and (2) a bar chart (using Recharts) showing Total P&L per strategy. Automatically highlight the best-performing strategy (highest Total P&L) with a distinct visual indicator (e.g., a gold badge or highlighted row). If a trade has no strategy, group it under 'Untagged'.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-6"
         ],
         "quotes": [
-          "Risk-Reward Calculator (Live): Jaise hi aap Entry Price aur Stop Loss daalein, system apne aap bata de ki aapka Risk per Share kitna hai."
+          "Add a new analytics section called 'Strategy Performance'",
+          "Group trades by strategy name",
+          "Display it in a sortable table and also a bar chart",
+          "Highlight the best performing strategy automatically"
         ]
       },
       "acceptanceCriteria": [
-        "Risk per Share is displayed and updates live as Entry Price or Stop Loss fields change.",
-        "Risk Amount (risk × quantity) updates live when Quantity, Entry, or Stop Loss fields change.",
-        "Risk:Reward Ratio updates live when Entry, Stop Loss, or Target changes.",
-        "The calculator outputs are shown in a clearly labeled summary block within the New Trade form.",
-        "All existing trade form fields and submit behavior remain unchanged."
+        "Strategy Performance section appears on the Analytics page",
+        "Table displays all five metrics per strategy: Total Trades, Win Rate %, Total P&L, Avg R:R, Avg Risk",
+        "Clicking a column header sorts the table by that column (asc/desc toggle)",
+        "Bar chart renders Total P&L per strategy using Recharts",
+        "The best-performing strategy (highest Total P&L) is visually highlighted in both the table and the chart",
+        "Trades without a strategy are grouped as 'Untagged'"
       ]
     },
     {
       "id": "REQ-6",
-      "text": "Add a Trade Conviction Meter to the New Trade form — a 1-to-5 star rating slider/selector that lets the trader record their confidence level ('conviction') before entering a trade. This conviction value must be saved as part of the trade record and displayed in the Trade Log table.",
-      "target": "both",
+      "text": "Add an Edit button to each trade card/row in TradeLogPage.tsx. Clicking Edit opens a modal pre-filled with the trade's current data. The modal must include editable fields for: Entry, Stop Loss, Target, P&L, Strategy (with autocomplete, see REQ-7), Emotion, and Notes. On submit, call the useUpdateTrade mutation. On success, close the modal and invalidate the trades and analytics queries so all data refreshes automatically.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-6"
         ],
         "quotes": [
-          "Trade Conviction Meter: Ek slider (1-5 stars) jisme aap trade lene se pehle apni 'feeling' record kar sakein."
+          "Add an Edit button on each trade card",
+          "open a modal with pre-filled existing trade data",
+          "After update, refresh analytics automatically"
         ]
       },
       "acceptanceCriteria": [
-        "A 1–5 star selector appears in the New Trade form under the Psychology section.",
-        "The selected conviction value is saved to the trade record in the backend.",
-        "The Trade Log table displays the conviction rating (as stars or numeric) for each trade.",
-        "Conviction field is optional and defaults to 0 or unset if not selected.",
-        "The backend trade data type includes a conviction field (Nat or similar)."
+        "Each trade card/row in the Trade Log has a visible Edit button",
+        "Clicking Edit opens a modal with all specified fields pre-filled with current trade values",
+        "All seven fields are editable in the modal",
+        "Submitting the modal calls updateTrade and shows a loading state during the request",
+        "On success, the modal closes and the trade list and analytics section refresh with updated data",
+        "On error, an error message is shown inside the modal without closing it"
       ]
     },
     {
       "id": "REQ-7",
-      "text": "Add search and filter controls to the Trade Log page (TradeLogPage) allowing users to filter past trades by Strategy (setup/strategy tag) and by Mistake Type (e.g., FOMO, Early Entry, etc.). The filters should work alongside the existing filters and update the trade table in real-time.",
+      "text": "Replace the plain strategy text input (in both NewTradePage.tsx and the Edit Trade modal) with a smart autocomplete input component. The component must: (1) fetch strategies via useGetStrategies; (2) filter suggestions case-insensitively as the user types; (3) support keyword/abbreviation matching so partial tokens match anywhere in the strategy name (e.g., typing '90' suggests '90 EMA Pullback', typing 'SR' suggests 'Support & Resistance'); (4) show a dropdown list of matching suggestions; (5) allow selection via mouse click or keyboard (arrow keys + Enter); (6) dismiss on Escape or outside click. The strategy value is still saved as free text.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-6"
         ],
         "quotes": [
-          "Journal Search/Filters: Ek filter jisme aap purane trades ko 'Strategy' ya 'Mistake Type' ke basis par search kar sakein."
+          "show autocomplete suggestions",
+          "Typing '90' should instantly suggest '90 EMA Pullback'",
+          "Typing 'SR' should suggest 'Support & Resistance'",
+          "Suggestions must be case-insensitive and fast"
         ]
       },
       "acceptanceCriteria": [
-        "A Strategy dropdown/filter control appears in the Trade Log filter bar, listing all unique strategy/setup values from logged trades plus an 'All' option.",
-        "A Mistake Type dropdown/multi-select appears in the Trade Log filter bar, listing all mistake types (FOMO, Early Entry, etc.) plus an 'All' option.",
-        "Selecting a Strategy or Mistake Type filter updates the displayed trade list in real time.",
-        "These filters compose correctly with existing search, direction, and type filters.",
-        "Clearing a filter restores the full trade list."
+        "Autocomplete dropdown appears while typing in the strategy field",
+        "Suggestions filter case-insensitively and match substrings anywhere in the strategy name",
+        "Abbreviations like 'SR' match strategies containing words starting with those letters",
+        "Keyboard navigation (arrow keys, Enter, Escape) works correctly",
+        "The component works in both NewTradePage and the Edit Trade modal",
+        "If no suggestions match, the dropdown is hidden and the typed value is used as-is"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Add a 'Strategy Manager' section to SettingsPage.tsx. Display the user's saved strategies as a list with a Delete button next to each entry. Clicking Delete calls the useDeleteStrategy mutation and removes it from the list. Show an empty state message if no strategies are saved.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Add ability to delete unused strategies from settings"
+        ]
+      },
+      "acceptanceCriteria": [
+        "SettingsPage includes a 'Strategy Manager' section listing all saved strategies",
+        "Each strategy entry has a Delete button",
+        "Clicking Delete removes the strategy and the list updates immediately",
+        "An empty-state message is shown when no strategies exist",
+        "The section matches the existing dark UI theme of SettingsPage"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Generate a migration module (backend/migration.mo) that adds the new 'strategies' stable data structure to the existing state without breaking existing trade records. The migration should be safe to run on upgrade and must preserve all existing trade data intact.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Return updated backend schema + frontend logic"
+        ]
+      },
+      "acceptanceCriteria": [
+        "migration.mo initializes the strategies stable variable on canister upgrade",
+        "All existing trade records are preserved after migration",
+        "No data loss occurs when upgrading from the previous schema"
       ]
     }
   ],
   "constraints": [
-    "Do not break or modify the existing trade CRUD operations, P&L calculations, or analytics charts.",
-    "All new UI components must use the existing deep navy dark theme and Tailwind CSS conventions.",
-    "Immutable frontend paths (hooks, main.tsx, ui components) must not be modified.",
-    "The backend trade data type may only be extended additionally (add conviction field); no existing fields should be removed."
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
+    "All backend functions must verify the caller's principal before accessing or modifying user data",
+    "New UI components must match the existing dark glassmorphism theme defined in frontend/src/index.css and tailwind.config.js",
+    "Use Recharts for all chart components, consistent with existing AnalyticsPage.tsx and DashboardPage.tsx"
   ],
   "nonGoals": [
-    "Authentication or Internet Identity integration (no login/signup).",
-    "Multi-user or per-user data isolation changes.",
-    "Redesigning the analytics page charts.",
-    "Adding new pages beyond what is described.",
-    "Mobile-only layout changes unrelated to the requested features."
+    "Adding new market types or trade fields beyond those listed",
+    "Real-time WebSocket or push-notification updates",
+    "Sharing or exporting strategy data between users",
+    "Any changes to the authentication flow or Internet Identity integration"
   ],
   "imageRequirements": {
     "required": [],

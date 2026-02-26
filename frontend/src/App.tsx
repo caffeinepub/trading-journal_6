@@ -4,12 +4,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
 import Layout from './components/Layout';
+import LoginScreen from './components/LoginScreen';
+import ProfileSetupModal from './components/ProfileSetupModal';
 import DashboardPage from './pages/DashboardPage';
 import NewTradePage from './pages/NewTradePage';
 import TradeLogPage from './pages/TradeLogPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import RiskManagementPage from './pages/RiskManagementPage';
 import SettingsPage from './pages/SettingsPage';
+import { useInternetIdentity } from './hooks/useInternetIdentity';
+import { useGetCallerUserProfile } from './hooks/useGetCallerUserProfile';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,12 +21,45 @@ const queryClient = new QueryClient({
   },
 });
 
+// Root layout with auth guard
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { identity, isInitializing } = useInternetIdentity();
+  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+
+  const isAuthenticated = !!identity;
+  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground">Initializing…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
+
+  return (
+    <>
+      <ProfileSetupModal open={showProfileSetup} />
+      {children}
+    </>
+  );
+}
+
 // Root layout
 const rootRoute = createRootRoute({
   component: () => (
-    <Layout>
-      <Outlet />
-    </Layout>
+    <AuthGuard>
+      <Layout>
+        <Outlet />
+      </Layout>
+    </AuthGuard>
   ),
 });
 
@@ -79,12 +116,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+function AppInner() {
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toaster richColors position="top-right" />
+    </>
+  );
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-        <RouterProvider router={router} />
-        <Toaster richColors position="top-right" />
+        <AppInner />
       </ThemeProvider>
     </QueryClientProvider>
   );

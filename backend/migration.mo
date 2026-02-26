@@ -1,44 +1,15 @@
 import Map "mo:core/Map";
-import Principal "mo:core/Principal";
 import Nat "mo:core/Nat";
+import Principal "mo:core/Principal";
+import AccessControl "authorization/access-control";
 
 module {
-  type OldTrade = {
+  // define the trade type as in the main actor
+  type Trade = {
     id : Nat;
     date : Int;
     stockName : Text;
-    tradeType : Text;
-    direction : Text;
-    entryPrice : Float;
-    exitPrice : Float;
-    stopLoss : Float;
-    target : Float;
-    quantity : Nat;
-    riskRewardRatio : Float;
-    pnl : Float;
-    isAPlusSetup : Bool;
-    emotion : Text;
-    followedPlan : Bool;
-    mistakeType : Text;
-    notes : Text;
-  };
-
-  type OldUserData = {
-    trades : Map.Map<Nat, OldTrade>;
-    var nextTradeId : Nat;
-    var dailyMaxLoss : Float;
-    var accountSize : Float;
-  };
-
-  type OldActor = {
-    users : Map.Map<Principal, OldUserData>;
-  };
-
-  type NewTrade = {
-    id : Nat;
-    date : Int;
-    stockName : Text;
-    tradeType : Text;
+    marketType : MarketType;
     direction : Text;
     entryPrice : Float;
     exitPrice : Float;
@@ -50,38 +21,45 @@ module {
     isAPlusSetup : Bool;
     emotion : Text;
     convictionLevel : Nat;
+    strategy : Text;
     followedPlan : Bool;
     mistakeType : Text;
     notes : Text;
   };
 
-  type NewUserData = {
-    trades : Map.Map<Nat, NewTrade>;
+  type MarketType = {
+    #stocks;
+    #future;
+    #option;
+    #cryptocurrency;
+    #forex;
+  };
+
+  type UserProfile = {
+    name : Text;
+  };
+
+  type UserData = {
+    trades : Map.Map<Nat, Trade>;
     var nextTradeId : Nat;
     var dailyMaxLoss : Float;
     var accountSize : Float;
   };
 
+  type OldActor = {
+    users : Map.Map<Principal, UserData>;
+    userProfiles : Map.Map<Principal, UserProfile>;
+    accessControlState : AccessControl.AccessControlState;
+  };
+
   type NewActor = {
-    users : Map.Map<Principal, NewUserData>;
+    users : Map.Map<Principal, UserData>;
+    userProfiles : Map.Map<Principal, UserProfile>;
+    strategies : Map.Map<Principal, Map.Map<Text, Int>>;
+    accessControlState : AccessControl.AccessControlState;
   };
 
   public func run(old : OldActor) : NewActor {
-    let newUsers = old.users.map<Principal, OldUserData, NewUserData>(
-      func(_id, oldUserData) {
-        let newTrades = oldUserData.trades.map<Nat, OldTrade, NewTrade>(
-          func(_id, oldTrade) {
-            { oldTrade with convictionLevel = 3 };
-          }
-        );
-        {
-          trades = newTrades;
-          var nextTradeId = oldUserData.nextTradeId;
-          var dailyMaxLoss = oldUserData.dailyMaxLoss;
-          var accountSize = oldUserData.accountSize;
-        };
-      }
-    );
-    { users = newUsers };
+    { old with strategies = Map.empty<Principal, Map.Map<Text, Int>>() };
   };
 };
